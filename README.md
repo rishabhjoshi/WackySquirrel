@@ -1,4 +1,3 @@
-HELLO GUYS!!!
 
                 ----INSTRUCTIONS----  
       
