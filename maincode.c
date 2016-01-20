@@ -565,7 +565,7 @@ void print_sharp_sensor(){
 	 lcd_print(1,14,sharp,3);
  }
 
-void auto_line_follow(){
+int auto_line_follow(int required_line_conf){
 	 int P,I,D,correction,L_speed,R_speed,error,prev_error,speed=0;
 	 if (count==0)
 	 {
@@ -633,6 +633,8 @@ void auto_line_follow(){
 		 forward();
 		 velocity(L_speed,R_speed);
 	 }
+	 if (line_conf==required_line_conf)
+	 return;
  }
 void take_order(){		//we have add a feature of reckeck if by mistake it is detecting more than one vip rooms
 	
@@ -827,11 +829,88 @@ int follow_left_wall(int required_distance){
 		 }
 		 
 }
-//void pickup_service()
-
+void pickup_service_dumping_section(char current_service){		//needs to be modified
+	int cross,tempv=0;
+	if (current_service=='R')
+	cross=2;
+	else if (current_service=='G')
+	cross=1;
+	else if	(current_service=='B')
+	cross=3;
+	while(tempv==cross)
+	{
+	auto_line_follow(111);
+	tempv++;
+	}
+	stop();
+	return;
+}
+void pickup_service_home(char current_service){			//the centre point of the two wheels is exactly on service home
+	int cross,tempv=0;
+	if(current_service=='G')
+	{
+		while(line_conf!=010)
+		{
+			right();
+			velocity(turn_speed,turn_speed);
+		}
+		stop();
+	}
+	else
+	{
+		print_line_sensor();
+		while(line_conf!=010)
+		{
+			print_line_sensor();
+			left();
+			velocity(turn_speed,turn_speed);
+		}
+		stop();
+		if (current_service=='R')
+			cross=1;
+		else if	(current_service=='B')
+			cross=2;
+		while(tempv==cross)
+		{
+			auto_line_follow(111);
+			tempv++;
+		}
+			stop();
+	}
+}
+/*void dump_garbage(current_room)
+{		//dumping garbage will always initiate from cross inside the room 
+	if(current_room!=4)
+	{
+		while(sharp_front>200)
+		{
+		forward();
+		velocity(max_speed,max_speed);
+		print_sharp_sensor();
+		}
+		stop();
+		right_degrees(90);
+		print_sharp_sensor();
+		while(sharp_left_diff<300)
+		{
+			follow_left_wall(120);
+			print_sharp_sensor();
+		}	
+		stop();
+		print_line_sensor();
+		while(010){
+			right_degrees(2);
+			print_line_sensor();
+		}
+		
+	}
+}*/
 
 
 //initialization functions
+
+
+
 void port_init(void){
 	 servo1_pin_config(); //Configure PORTB 5 pin for servo motor 1 operation
 	 servo2_pin_config(); //Configure PORTB 6 pin for servo motor 2 operation
