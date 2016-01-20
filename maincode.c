@@ -81,7 +81,7 @@ long int threshold=800;			//threshold value to decide the color
 //volatile variables
 volatile unsigned long int ShaftCountLeft = 0; 		
 volatile unsigned long int ShaftCountRight = 0; 	
-volatile unsigned int Degrees;					 	
+volatile unsigned int Degrees,sharp,value;					 	
 volatile unsigned long int pulse = 0; 				
 volatile unsigned long int  red;       				
 volatile unsigned long int  blue;      				
@@ -95,11 +95,12 @@ volatile unsigned int left_line=0,center_line=0,right_line=0,line_conf;
 
 char color;
 int count;
-long int distance;
+int KLp=10,KLi=10,KLd=10,KWp=10,KWi=10,KWd=10; //kLp is proportionality constant for auto line follower and kwp for wall following
+long int distance;  
 float BATT_Voltage;
-int pref[5]={0,0,0,0,0};
-char orders[5];
-int sorted_rooms[5]={0,0,0,0,0};
+int pref[5]								//the type of room is saved sequentially 1->vip	0->regular	(-1)->DND room
+char orders[5];							//the orders of the rooms 1234 in sequence 2nd position has order room1's order
+int sorted_rooms[5]={0,0,0,0,0};		//the final sequence of rooms bot has to provide service
 int current_room;
 
 //SENSOR CONFIGURATION AND PREDEFINED FUNCTIONS
@@ -240,7 +241,8 @@ void motion_set (unsigned char Direction){
 	PortARestore = PORTA; 		// reading the PORTA original status
 	PortARestore &= 0xF0; 		// making lower direction nibbel to 0
 	PortARestore |= Direction; // adding lower nibbel for forward command and restoring the PORTA status
-	PORTA = PortARestore; 		// executing the command}
+	PORTA = PortARestore; 		// executing the command
+}
 void servo1_pin_config (void) {
  DDRB  = DDRB | 0x20;  
  PORTB = PORTB | 0x20; 
@@ -563,8 +565,8 @@ void print_sharp_sensor(){
 	 lcd_print(1,14,sharp,3);
  }
 
-void auto_follow(){
-	 int P,I,D,Kp=10,Ki=10,Kd=10,correction,L_speed,R_speed,error,prev_error,speed=0,max_speed=160,turn_speed=120,line_conf;
+void auto_line_follow(){
+	 int P,I,D,correction,L_speed,R_speed,error,prev_error,speed=0;
 	 if (count==0)
 	 {
 		 P=0;
@@ -576,7 +578,7 @@ void auto_follow(){
 		 count++;
 	 }
 	 print_line_sensor();
-	 print_sharp_sensor();
+	
 	 line_conf = 100*left_line + 10*center_line +right_line;
 	 if (line_conf == 111)
 	 stop();
@@ -624,7 +626,7 @@ void auto_follow(){
 		 P = error;
 		 I = I + error;
 		 D = prev_error - error;
-		 correction = Kp*P + Ki*I + Kd*D;
+		 correction = KLp*P + KLi*I + KLd*D;
 		 L_speed = speed + correction;
 		 R_speed = speed - correction;
 		 prev_error = error;
@@ -632,11 +634,11 @@ void auto_follow(){
 		 velocity(L_speed,R_speed);
 	 }
  }
-void take_order(){
+void take_order(){		//we have add a feature of reckeck if by mistake it is detecting more than one vip rooms
 	
 	char room1,room2;
 	print_sharp_sensor();
-	while(sharp_left_diff < 300)
+	while(sharp_left_diff < 300)		//forward till it detects left wall or first indicator
 	{
 		forward();
 		velocity(turn_speed,turn_speed);
@@ -644,32 +646,34 @@ void take_order(){
 	}
 	stop();
 	left_degrees(90);
-	forward_mm(185);
+	forward_mm(50);
 	stop();
 	right_degrees(90);
 	color_detect();
-	while (color=='E')
+	/*while (color=='E')
 	{
 		color_detect();
-	}
+	}*/
 	room1 = color;
 	//forward_mm(150);
 	print_sharp_sensor();
-	while(sharp_front >= 150)
+	while(sharp_front >= 200)
 	{
-		forward();
-	    velocity(turn_speed,turn_speed);
-		print_sharp_sensor();
+		follow_right_wall(210);
+		//forward();
+		//velocity(turn_speed,turn_speed);
+		//print_sharp_sensor();
 	}
 	stop();
+	//we have to check if the bot is straight and at enough close to second indicator
 	
 	_delay_ms(300);
 	forward_mm(60);
 	color_detect();
-	while (color=='E')
+	/*while (color=='E')
 	{
 		color_detect();
-	}
+	}*/
 	room2=color;
 	
 	while (judge_order(room1,room2)=='E')		//detecting the indicators again if we cant judge the final order from available color pair like red and green 
@@ -696,7 +700,7 @@ void take_order(){
 	}
 	orders[current_room]=judge_order(room1,room2);
 	
-	if (current_room!=4)
+	if (current_room<4)
 	{
 	
 		right_degrees(180);
@@ -769,6 +773,64 @@ void sort_orders(){  int j=2;
 	 
  }
 
+int follow_right_wall(int required_distance){
+		 int correction,L_speed,R_speed,error,prev_error,speed=0,k=2,value,sharp;
+		 
+		 	value = ADC_Conversion(13);
+	     	sharp=Sharp_GP2D12_estimation(value);
+	 	 	sharp_right_diff = sharp_right - sharp;
+			 sharp_right=sharp;
+		 //lcd_print(1,14,sharp,3);     
+		 if(sharp_right!=800)
+		 {
+		 	 error = sharp_right - required_distance;
+			 //P = error;
+			 //I = I + error;
+			 //D = prev_error - error;
+			 correction = KWp*error + KWi*(I + error)+ KWd*D;
+			 L_speed = k*max_speed + correction;
+			 R_speed = k*max_speed - correction;
+			 prev_error = error;
+			 forward();
+			 velocity(L_speed,R_speed);
+		 }
+		 else
+		 {
+		 	stop();
+		 }
+		 
+}
+int follow_left_wall(int required_distance){
+		 int correction,L_speed,R_speed,error,prev_error,speed=0,k=2; //k is speed proportionality constant
+		 
+		 	value = ADC_Conversion(9);
+	     	sharp=Sharp_GP2D12_estimation(value);
+	 	 	sharp_left_diff = sharp_left - sharp;
+			 sharp_left=sharp;
+		 //lcd_print(1,6,sharp,3);     
+		 if(sharp_left!=800)
+		 {
+		 	 error = sharp_left - required_distance;
+			 //P = error;
+			 //I = I + error;
+			 //D = prev_error - error;
+			 correction = KWp*error + KWi*(I + error)+ KWd*D;
+			 L_speed = k*max_speed - correction;
+			 R_speed = k*max_speed + correction;
+			 prev_error = error;
+			 forward();
+			 velocity(L_speed,R_speed);
+		 }
+		 else
+		 {
+		 	stop();
+		 }
+		 
+}
+//void pickup_service()
+
+
+
 //initialization functions
 void port_init(void){
 	 servo1_pin_config(); //Configure PORTB 5 pin for servo motor 1 operation
@@ -796,7 +858,7 @@ void init_devices(){
 	color_sensor_scaling();
 	sei();   // Enables the global interrupt
 }
-//whever you use autofollow make sure you reset the value of count to zero
+//************whever you use autofollow make sure you reset the value of COUNT TO ZERO.***********************
  int main(void)
  {  
 	 init_devices();
