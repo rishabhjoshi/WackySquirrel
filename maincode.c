@@ -9,7 +9,7 @@
 	  27  18  28  17
 
 ADC Connection:
-ACD CH.	   PORT	   Sensor
+ADC CH.	   PORT	   Sensor
 0			PF0		Battery Voltage
 1			PF1		White line sensor 3 right
 2			PF2		White line sensor 2 center
@@ -71,12 +71,12 @@ _____         _        _____				 ___________________________|
 #include <util/delay.h>
 #include <math.h>
 #include "lcd.h"
-//contants
+//constants
 int line_sensor_distance=200;
 int threshold_line_sensor_value=70;
 int Csensor_pos=50;   //distance of color sensor from the left sharp sensor
 int max_speed=150,turn_speed=100;
-long int threshold=800;			//threshold value to decide the color
+int threshold=800;			//threshold value to decide the color
 
 //volatile variables
 volatile unsigned long int ShaftCountLeft = 0; 		
@@ -90,13 +90,14 @@ volatile unsigned char ADC_Conversion(unsigned char);
 volatile unsigned char ADC_Value;
 volatile unsigned char adc_reading;
 volatile unsigned int sharp_left=0,sharp_right=0,sharp_front=0,sharp_left_diff,sharp_right_diff,sharp_front_diff;
+//range of the sharp sensor is 10cm to 80cm
 volatile unsigned int left_line=0,center_line=0,right_line=0,line_conf;
 
 
 char color;
 int count;
 int KLp=10,KLi=10,KLd=10,KWp=10,KWi=10,KWd=10; //kLp is proportionality constant for auto line follower and kwp for wall following
-long int distance;  
+int distance;  
 float BATT_Voltage;
 int pref[5]								//the type of room is saved sequentially 1->vip	0->regular	(-1)->DND room
 char orders[5];							//the orders of the rooms 1234 in sequence 2nd position has order room1's order
@@ -302,7 +303,7 @@ void blink_blue() {
 	 _delay_ms(1000);
 	 PORTL = PORTL | 0xC3;
  }
- void print_battery_voltage(){
+void print_battery_voltage(){
 	BATT_Voltage = ((ADC_Conversion(0)*100)*0.07902) + 0.7;
 	lcd_print(1,1,BATT_Voltage,4);
 }
