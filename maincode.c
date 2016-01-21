@@ -72,11 +72,11 @@ _____         _        _____				 ___________________________|
 #include <math.h>
 #include "lcd.h"
 //constants
-int line_sensor_distance=200;
-int threshold_line_sensor_value=70;
-int Csensor_pos=50;   //distance of color sensor from the left sharp sensor
-int max_speed=150,turn_speed=100;
-int threshold=800;			//threshold value to decide the color
+const int line_sensor_distance=200;
+const int threshold_line_sensor_value=70;
+const int Csensor_pos=50;   //distance of color sensor from the left sharp sensor
+const int max_speed=150,turn_speed=100;
+const int threshold=800;	//threshold value to decide the color
 
 //volatile variables
 volatile unsigned long int ShaftCountLeft = 0; 		
@@ -380,11 +380,11 @@ void right_degrees(unsigned int Degrees) {
 	right(); 
 	angle_rotate(Degrees);
 }
-int mod(int a) {   
-	if (a<0)
-	a= a*(-1);
-	return a;
-}
+//int mod(int a) { //will create confusion between abs and %. Use abs(_int), in math.h.  
+//	if (a<0)
+//	a= a*(-1);
+//	return a;
+//}
 void print_sensor(char row, char coloumn,unsigned char channel) {
 	ADC_Value = ADC_Conversion(channel);
 	lcd_print(row, coloumn, ADC_Value, 3);
