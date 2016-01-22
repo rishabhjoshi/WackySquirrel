@@ -947,7 +947,7 @@ void dump_garbage(current_room)
 		print_sharp_sensor();
 		while(abs(sharp_right_diff)<=250)
 		{
-			follow_right_wall();
+			follow_right_wall(150);
 			print_sharp_sensor();
 		}
 		stop();
@@ -967,7 +967,8 @@ void dump_garbage(current_room)
 		}
 		stop();
 		print_line_sensor();
-		while(line_conf!=111)
+		ShaftCountRight = 0;
+		while(line_conf!=111 && ShaftCountRight >=)
 	}
 }
 
