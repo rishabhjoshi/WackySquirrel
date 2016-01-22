@@ -963,10 +963,11 @@ void dump_garbage(current_room){		//dumping garbage will always initiate from cr
 		}
 		stop();
 		print_line_sensor();
-		ShaftCountRight = 0;
-		while(line_conf!=111 && ShaftCountRight >=)
-		{
-			
+		//ShaftCountRight = 0;
+		//distance
+		while(line_conf!=111 )			//use shaft count for detection of second cross
+		{	
+			print_line_sensor();
 		}
 	}
 }
