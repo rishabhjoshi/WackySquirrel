@@ -456,7 +456,7 @@ void color_detect() {
  }
 char judge_order(char room1,char room2){
 	 char order1;
-	 if (room1 != 'K')
+	 if (room1 != 'K') // K is black
 	 {
 		 if (room1 == room2)
 		 {
@@ -561,7 +561,7 @@ void print_sharp_sensor(){
 	 sharp_right=sharp;
 	 lcd_print(1,14,sharp,3);
  }
-int auto_line_follow(int required_line_conf){
+void auto_line_follow(int required_line_conf){
 	 int P,I,D,correction,L_speed,R_speed,error,prev_error,speed=0;
 	 /*if (count==0)
 	 {
@@ -575,7 +575,7 @@ int auto_line_follow(int required_line_conf){
 	 }*/
 	 print_line_sensor();
 	
-	 line_conf = 100*left_line + 10*center_line +right_line;
+	 line_conf = 100*left_line + 10*center_line +right_line; //0-white , 1-black
 	 if (line_conf == 111)
 	 stop();
 	 else if (line_conf == 101)
@@ -588,7 +588,7 @@ int auto_line_follow(int required_line_conf){
 		 L_speed = turn_speed + 20 *error;
 		 R_speed = turn_speed - 20 *error;
 		 forward();
-	 velocity(L_speed,R_speed);
+	 	 velocity(L_speed,R_speed);
 	 }
 	 
 	 else 
