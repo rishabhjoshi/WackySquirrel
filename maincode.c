@@ -664,7 +664,7 @@ void take_order(){		//we have add a feature of reckeck if by mistake it is detec
 		//print_sharp_sensor();
 	}
 	stop();
-	//we have to check if the bot is straight and at enough close to second indicator
+	//we have to check if the bot is straight and close enough to second indicator
 	
 	_delay_ms(300);
 	forward_mm(60);
@@ -731,7 +731,8 @@ void take_order(){		//we have add a feature of reckeck if by mistake it is detec
 	
 		while(line_conf != 010)
 		{
-			left_degrees(1);
+			left();
+			velocity(turn_speed/2, turn_speed/2);
 			print_line_sensor();
 		}
 		stop();
@@ -758,11 +759,12 @@ void take_order(){		//we have add a feature of reckeck if by mistake it is detec
 	}
 	
 }
-void sort_orders(){  int j=2;
+void sort_orders(){ 
+	 int j=2;
 	 for(int i=1;i<5;i++)
 	 {
 		 if(pref[i]==1)
-		 sorted_rooms[1] =i;
+		 	sorted_rooms[1] = i;
 		 else if (pref[i]==0)
 		 {
 			 sorted_rooms[j]=i;
@@ -879,8 +881,7 @@ void pickup_service_home(char current_service){			//the centre point of the two 
 }
 
 
-void dump_garbage(current_room)
-{		//dumping garbage will always initiate from cross inside the room i.e. room home
+void dump_garbage(current_room){		//dumping garbage will always initiate from cross inside the room i.e. room home
 	if(current_room!=4)
 	{
 		while(sharp_front>200)
@@ -1002,8 +1003,7 @@ void init_devices(){
 	sei();   // Enables the global interrupt
 }
 //************whever you use autofollow make sure you reset the value of COUNT TO ZERO.***********************
- int main(void)
- {  
+ int main(void){  
 	 init_devices();
 	 
 	 while(1)
