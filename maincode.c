@@ -381,11 +381,6 @@ void right_degrees(unsigned int Degrees) {
 	right(); 
 	angle_rotate(Degrees);
 }
-//int mod(int a) { //will create confusion between abs and %. Use abs(_int), in math.h.  
-//	if (a<0)
-//	a= a*(-1);
-//	return a;
-//}
 void print_sensor(char row, char coloumn,unsigned char channel) {
 	ADC_Value = ADC_Conversion(channel);
 	lcd_print(row, coloumn, ADC_Value, 3);
