@@ -565,7 +565,6 @@ void print_sharp_sensor(){
 	 sharp_right=sharp;
 	 lcd_print(1,14,sharp,3);
  }
-
 int auto_line_follow(int required_line_conf){
 	 int P,I,D,correction,L_speed,R_speed,error,prev_error,speed=0;
 	 /*if (count==0)
@@ -894,17 +893,23 @@ void pickup_service_home(char current_service){			//the centre point of the two 
 		stop();
 		right_degrees(90);
 		print_sharp_sensor();
-		while(sharp_left_diff<300)
+		while(abs(sharp_left_diff)<300)
 		{
 			follow_left_wall(120);
 			print_sharp_sensor();
 		}	
 		stop();
+		forward_mm(150);
 		print_line_sensor();
-		while(010){
-			right_degrees(2);
+		while(line_conf!=111){
+			forward();
+			//right_degrees(1);
+			//right();
+			velocity(turn_speed,turn_speed);
 			print_line_sensor();
-		}
+		}								//bot has reached at home
+		stop();
+		//while(line_conf!=111)
 		
 	}
 }*/
