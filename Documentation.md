@@ -2,6 +2,7 @@
 
 ##Motion:
 1. Forward and Backward motion:
+
   a> forward() and backward()
   b> velocity(<speed of left motor(0-255)>,<speed of right motor(0,255)>)
   c> _delay_ms(time in millisec)
