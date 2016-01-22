@@ -103,6 +103,7 @@ int pref[5]								//the type of room is saved sequentially 1->vip	0->regular	(-
 char orders[5];							//the orders of the rooms 1234 in sequence 2nd position has order room1's order
 int sorted_rooms[5]={0,0,0,0,0};		//the final sequence of rooms bot has to provide service
 int current_room;
+int 
 
 //SENSOR CONFIGURATION AND PREDEFINED FUNCTIONS
 void lcd_port_config (void){
@@ -640,7 +641,8 @@ void take_order(){		//we have add a feature of reckeck if by mistake it is detec
 	
 	char room1,room2;
 	print_sharp_sensor();
-	while(sharp_left_diff < 300)		//forward till it detects left wall or first indicator
+	while(abs(sharp_left_diff) < 300)		//forward till it detects left wall or first indicator
+											//when bot detects left wall the sharp left value will change instantly and instant_sharp_left_distance_difference i.e. sharp_left_diff will be become 500 otherwise it is close to zero 
 	{
 		forward();
 		velocity(turn_speed,turn_speed);
@@ -840,6 +842,8 @@ void pickup_service_dumping_section(char current_service){		//needs to be modifi
 	while(tempv==cross)
 	{
 	auto_line_follow(111);
+	print_sharp_sensor();
+	if(sharp_left<600)			//to rule out the possibility line_conf becoming 111 at service since we dont have to consider it as a cross
 	tempv++;
 	}
 	stop();
@@ -880,15 +884,15 @@ void pickup_service_home(char current_service){			//the centre point of the two 
 }
 
 
-/*void dump_garbage(current_room)
+void dump_garbage(current_room)
 {		//dumping garbage will always initiate from cross inside the room i.e. room home
 	if(current_room!=4)
 	{
 		while(sharp_front>200)
 		{
-		forward();
-		velocity(max_speed,max_speed);
-		print_sharp_sensor();
+			forward();
+			velocity(max_speed,max_speed);
+			print_sharp_sensor();
 		}
 		stop();
 		right_degrees(90);
@@ -897,22 +901,75 @@ void pickup_service_home(char current_service){			//the centre point of the two 
 		{
 			follow_left_wall(120);
 			print_sharp_sensor();
-		}	
+		}
 		stop();
-		forward_mm(150);
+		if(current_room==2)
+		{	
+			print_sharp_sensor();
+			while(sharp_right>400)
+			{
+				forward();
+				velocity(turn_speed,turn_speed);
+				print_sharp_sensor();
+			}
+			stop();
+		}
+		else
+		{
+			print_line_sensor();
+			while(line_conf!=111)
+			{
+				forward();
+				velocity(turn_speed,turn_speed);
+				print_line_sensor();
+			}
+			forward_mm(line_sensor_distance);
+			stop();
+			print_line_sensor();
+			while(line_conf!=010)
+			{	
+				if (current_room==1)
+				right();
+				else
+				left();
+				velocity(turn_speed/2,turn_speed/2);
+				print_line_sensor();
+			}
+			stop();
+			print_sharp_sensor();
+			while(sharp_right>400)
+			{
+				forward();
+				velocity(turn_speed,turn_speed);
+			}
+			stop();
+		}
+		print_sharp_sensor();
+		while(abs(sharp_right_diff)<=250)
+		{
+			follow_right_wall();
+			print_sharp_sensor();
+		}
+		stop();
 		print_line_sensor();
-		while(line_conf!=111){
+		while(line_conf!=111)
+		{
 			forward();
-			//right_degrees(1);
-			//right();
+			velocity(turn_speed,turn_speed);
+			print_sharp_sensor();
+		}
+		forward_mm(line_sensor_distance);
+		while(line_conf!=010)
+		{
+			right();
 			velocity(turn_speed,turn_speed);
 			print_line_sensor();
-		}								//bot has reached at home
+		}
 		stop();
-		//while(line_conf!=111)
-		
+		print_line_sensor();
+		while(line_conf!=111)
 	}
-}*/
+}
 
 
 //initialization functions
