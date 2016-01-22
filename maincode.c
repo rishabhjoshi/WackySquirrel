@@ -568,7 +568,7 @@ void print_sharp_sensor(){
 
 int auto_line_follow(int required_line_conf){
 	 int P,I,D,correction,L_speed,R_speed,error,prev_error,speed=0;
-	 if (count==0)
+	 /*if (count==0)
 	 {
 		 P=0;
 		 I=0;
@@ -577,7 +577,7 @@ int auto_line_follow(int required_line_conf){
 		 error=0;
 		 prev_error=0;
 		 count++;
-	 }
+	 }*/
 	 print_line_sensor();
 	
 	 line_conf = 100*left_line + 10*center_line +right_line;
@@ -624,10 +624,10 @@ int auto_line_follow(int required_line_conf){
 			speed = turn_speed;
 		 }
 		 
-		 P = error;
+		 //P = error;
 		 I = I + error;
-		 D = prev_error - error;
-		 correction = KLp*P + KLi*I + KLd*D;
+		 //D = prev_error - error;
+		 correction = KLp*error + KLi*I + KLd*(prev_error - error);
 		 L_speed = speed + correction;
 		 R_speed = speed - correction;
 		 prev_error = error;
@@ -879,8 +879,10 @@ void pickup_service_home(char current_service){			//the centre point of the two 
 			stop();
 	}
 }
+
+
 /*void dump_garbage(current_room)
-{		//dumping garbage will always initiate from cross inside the room 
+{		//dumping garbage will always initiate from cross inside the room i.e. room home
 	if(current_room!=4)
 	{
 		while(sharp_front>200)
