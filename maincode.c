@@ -969,6 +969,9 @@ void dump_garbage(current_room)
 		print_line_sensor();
 		ShaftCountRight = 0;
 		while(line_conf!=111 && ShaftCountRight >=)
+		{
+			
+		}
 	}
 }
 
