@@ -12,7 +12,7 @@
   
   d> stop()
 
-###OR
+####OR
   
   a>forward_mm(dist. in mm),backward_mm(dist.in mm)
 
@@ -24,7 +24,7 @@ a> left() and right()
 
   c>stop()
 
-  ###OR
+  ####OR
 
   a>left_degree(angle in degrees) , right_degree(angle in degrees)  >>> this method id not that accurate
 
