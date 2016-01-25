@@ -75,7 +75,7 @@ _____         _        _____				 ___________________________|
 const int line_sensor_distance=200;
 const int threshold_line_sensor_value=70;
 const int Csensor_pos=50;   //distance of color sensor from the left sharp sensor
-const int max_speed=150,turn_speed=100;
+const int max_speed=150,turn_speed=80;
 const int threshold=800;	//threshold value to decide the color
 
 //volatile variables
@@ -91,19 +91,20 @@ unsigned char ADC_Value;
 volatile unsigned char adc_reading;
 volatile unsigned int sharp_left=0,sharp_right=0,sharp_front=0,sharp_left_diff,sharp_right_diff,sharp_front_diff;
 //range of the sharp sensor is 10cm to 80cm
-volatile unsigned int left_line=0,center_line=0,right_line=0,line_conf;
+int left_line=0,center_line=0,right_line=0;
+int line_conf=0;
 
 
 char color;
 int count;
-int KLp=10,KLi=10,KLd=10,KWp=10,KWi=10,KWd=10; //kLp is proportionality constant for auto line follower and kwp for wall following
+int KLp,KLi=0,KLd=0,KWp=10,KWi=10,KWd=10; //kLp is proportionality constant for auto line follower and kwp for wall following
 int distance;  
 float BATT_Voltage;
-int pref[5]								//the type of room is saved sequentially 1->vip	0->regular	(-1)->DND room
+int pref[5];								//the type of room is saved sequentially 1->vip	0->regular	(-1)->DND room
 char orders[5];							//the orders of the rooms 1234 in sequence 2nd position has order room1's order
 int sorted_rooms[5]={0,0,0,0,0};		//the final sequence of rooms bot has to provide service
 int current_room;
-int 
+
 
 //SENSOR CONFIGURATION AND PREDEFINED FUNCTIONS
 void lcd_port_config (void){
@@ -181,7 +182,8 @@ void buzzer_pin_config (void){
 	PORTC = PORTC & 0xF7;		//Setting PORTC 3 logic low to turnoff buzzer
 }
 void GPIO_pin_config(void) {
-	DDRL = DDRL | 0xC3;      
+	DDRL = DDRL | 0xC3;   
+	//DDRD = DDRD & 0x0F;  
 	PORTL = PORTL | 0xC3;	 
 }
 void color_sensor_pin_config(void) {
@@ -389,16 +391,21 @@ void print_sensor(char row, char coloumn,unsigned char channel) {
 
 //OUR MAIN FOCUS WOULD BE THESE FUNCTIONS
 void clip_close(void) {	
-	servo_1(180);
-	wait();
-	servo_2(0);
-	wait();
+	for (int i=0;i<200;i++)
+		servo_1(i);
+	
+	
+	//wait();
+	//servo_2(0);
+	//wait();
+	_delay_ms(2000);
 }
 void clip_open(void) {
 		servo_1(0);
-		wait();
-		servo_2(180);
-		wait();
+		//wait();
+		//servo_2(180);
+		//wait();
+		_delay_ms(2000);
 }
 void buzzer_on (void) {
 	unsigned char port_restore = 0;
@@ -512,38 +519,47 @@ void blue_read(void) {
 	_delay_ms(100); 
 	blue = pulse;  
 	}
-void print_line_sensor(){
-	 if (ADC_Conversion(3)>0x10/*threshold_line_sensor_value*/)    //to print left line sensor detection W-white B-black
-	 {	lcd_cursor_char_print(2,5,'B');
+void print_line_sensor(){		
+	 
+	 if (ADC_Conversion(3)>32)    //to print left line sensor detection W-white B-black
+	 {	
+		 //lcd_cursor_char_print(2,5,'B');
 		left_line=1;
 	 }
 	 else
-	 {	lcd_cursor_char_print(2,5,'W');
+	 {	
+		 //lcd_cursor_char_print(2,5,'W');
 		left_line=0;
 	 }
 	 
-	 if (ADC_Conversion(2)>0x10/*threshold_line_sensor_value*/)	  //to print center line sensor detection W-white B-black
-	 {	lcd_cursor_char_print(2,7,'B');
+	 if (ADC_Conversion(2)>32)	  //to print center line sensor detection W-white B-black
+	 {	
+		 //lcd_cursor_char_print(2,7,'B');
 		center_line=1;
 	 }
 	 else
-	 {	lcd_cursor_char_print(2,7,'W');
+	 {	
+		 //lcd_cursor_char_print(2,7,'W');
 		center_line=0;
 	 }
 	 
-	 if (ADC_Conversion(1)>0x10/*threshold_line_sensor_value*/)	  //to print right line sensor detection
-	 {	lcd_cursor_char_print(2,9,'B');
+	 if (ADC_Conversion(1)>32)	  //to print right line sensor detection
+	 {	
+		 //lcd_cursor_char_print(2,9,'B');
 		right_line=1;
 	 }
 	 else
-	 {	lcd_cursor_char_print(2,9,'W');
+	 {	
+		 //lcd_cursor_char_print(2,9,'W');
 		right_line=0;
 	 }
 	 
 	 line_conf = 100*left_line + 10*center_line +right_line;
- }
+	 lcd_print(1,1,line_conf,3);
+	 //return line_conf;
+	}
 void print_sharp_sensor(){
- 	int sharp,value;
+ 	unsigned int sharp,value;
 	 
 	 value = ADC_Conversion(9);
 	 sharp =Sharp_GP2D12_estimation(value);
@@ -562,18 +578,25 @@ void print_sharp_sensor(){
 	 lcd_print(1,14,sharp,3);
  }
 void auto_line_follow(int required_line_conf){
-	 int P,I,D,correction,L_speed,R_speed,error,prev_error,speed=0;
+	 int I=0,correction=0,L_speed=0,R_speed=0,error=0,prev_error=0,speed=0;
+	 
+	 lcd_print(2,1,KLp,3);
 	 print_line_sensor();
-	
-	 line_conf = 100*left_line + 10*center_line +right_line; //0-white , 1-black
+	 while (1)
+	 {
+		 
+	 //print_line_sensor();
+	 
 	 if (line_conf == 111)
-	 stop();
+	 _delay_ms(100);
+	 //stop();
+	 
 	 else if (line_conf == 101)
 	 {
 		forward();
 		velocity(turn_speed,turn_speed);
 	 }
-	 else if (line_conf == 000)
+	 else if (line_conf == 0)
 	 {
 		 L_speed = turn_speed + 20 *error;
 		 R_speed = turn_speed - 20 *error;
@@ -593,12 +616,12 @@ void auto_line_follow(int required_line_conf){
 			error = -1;
 			speed = max_speed - 20;
 		 }
-		 else if(line_conf == 010)
+		 else if(line_conf == 10)
 		 {
 			error = 0;
 			speed = max_speed;
 		 }
-		 else if(line_conf == 011)
+		 else if(line_conf == 11)
 		 {
 			error = 1;
 			speed = max_speed -20;
@@ -619,10 +642,15 @@ void auto_line_follow(int required_line_conf){
 		 forward();
 		 velocity(L_speed,R_speed);
 	 }
+	 _delay_ms(100);
+	 print_line_sensor();
 	 if (line_conf==required_line_conf)
-	 return;
+	 {stop();
+	 break;}
+	 }	 
  }
-void take_order(){		//we have add a feature of reckeck if by mistake it is detecting more than one vip rooms
+void take_order(){		
+	//we have add a feature of reckeck if by mistake it is detecting more than one vip rooms
 	
 	char room1,room2;
 	print_sharp_sensor();
@@ -659,10 +687,7 @@ void take_order(){		//we have add a feature of reckeck if by mistake it is detec
 	_delay_ms(300);
 	forward_mm(60);
 	color_detect();
-	/*while (color=='E')
-	{
-		color_detect();
-	}*/
+	
 	room2=color;
 	
 	while (judge_order(room1,room2)=='E')		//detecting the indicators again if we cant judge the final order from available color pair like red and green 
@@ -708,7 +733,7 @@ void take_order(){		//we have add a feature of reckeck if by mistake it is detec
 	
 		while(line_conf != 111)
 		{
-		auto_follow ();
+		//auto_line_follow ();
 		}
 		count=0;
 	
@@ -742,7 +767,7 @@ void take_order(){		//we have add a feature of reckeck if by mistake it is detec
 		left_degrees(90);
 		while(line_conf != 111)
 		{
-			auto_follow();
+			//auto_line_follow();
 		}
 		count = 0;
 		stop();
@@ -765,7 +790,7 @@ void sort_orders(){
  }
 
 int follow_right_wall(int required_distance){
-		 int correction,L_speed,R_speed,error,prev_error,speed=0,k=2,value,sharp;
+		 int I,correction,L_speed,R_speed,error,prev_error,speed=0,k=2,value,sharp;
 		 
 		 	value = ADC_Conversion(13);
 	     	sharp=Sharp_GP2D12_estimation(value);
@@ -778,7 +803,7 @@ int follow_right_wall(int required_distance){
 			 //P = error;
 			 //I = I + error;
 			 //D = prev_error - error;
-			 correction = KWp*error + KWi*(I + error)+ KWd*D;
+			 correction = KWp*error + KWi*(I + error)+ KWd*(prev_error - error);
 			 L_speed = k*max_speed + correction;
 			 R_speed = k*max_speed - correction;
 			 prev_error = error;
@@ -792,7 +817,7 @@ int follow_right_wall(int required_distance){
 		 
 }
 int follow_left_wall(int required_distance){
-		 int correction,L_speed,R_speed,error,prev_error,speed=0,k=2; //k is speed proportionality constant
+		 int I,correction,L_speed,R_speed,error,prev_error,speed=0,k=2; //k is speed proportionality constant
 		 
 		 	value = ADC_Conversion(9);
 	     	sharp=Sharp_GP2D12_estimation(value);
@@ -805,7 +830,7 @@ int follow_left_wall(int required_distance){
 			 //P = error;
 			 //I = I + error;
 			 //D = prev_error - error;
-			 correction = KWp*error + KWi*(I + error)+ KWd*D;
+			 correction = KWp*error + KWi*(I + error)+ KWd*(prev_error - error);
 			 L_speed = k*max_speed - correction;
 			 R_speed = k*max_speed + correction;
 			 prev_error = error;
@@ -818,7 +843,8 @@ int follow_left_wall(int required_distance){
 		 }
 		 
 }
-void pickup_service_dumping_section(char current_service){		//needs to be modified
+
+void pickup_service_dumping_section(char current_service){		
 	int cross,tempv=0;
 	if (current_service=='R')
 	cross=2;
@@ -836,7 +862,8 @@ void pickup_service_dumping_section(char current_service){		//needs to be modifi
 	stop();
 	return;
 }
-void pickup_service_home(char current_service){			//the centre point of the two wheels is exactly on service home
+void pickup_service_home(char current_service){			
+	//the centre point of the two wheels is exactly on service home
 	int cross,tempv=0;
 	if(current_service=='G')
 	{
@@ -871,7 +898,8 @@ void pickup_service_home(char current_service){			//the centre point of the two 
 }
 
 
-void dump_garbage(current_room){		//dumping garbage will always initiate from cross inside the room i.e. room home
+void dump_garbage(current_room){		
+	//dumping garbage will always initiate from cross inside the room i.e. room home
 	if(current_room!=4)
 	{
 		while(sharp_front>200)
@@ -995,30 +1023,31 @@ void init_devices(){
 }
 //************whever you use autofollow make sure you reset the value of COUNT TO ZERO.***********************
  int main(void){  
+	 /*unsigned char a;
+	 int b;
+	 _delay_ms(1000);
+	 a=PIND;
+	 
+	 a = a & 0xF0;
+	 b= (int) a/16;		
+	 //KLp=PIND0*16+PIND7*8+PIND6*4+PIND5*2+PIND4;		//43,50,49,48,47*/
+	 
+	 //KLp=25;
+	 
 	 init_devices();
-	 	unsigned char leftL,centerL,rightL;
-	 	left();
-	 	velocity(130,130);
-	
-	 while(1)
-	 {		
-	 		leftL = ADC_Conversion(3);
-	 		centerL = ADC_Conversion(2);
-	 		rightL = ADC_Conversion(1);
-	 		print_sensor(1,1,3);
-			print_sensor(1,5,2);
-			print_sensor(1,9,1);
-	 		
+	 
+	 //auto_line_follow(111);
+	while(1){
+		
+	 clip_close();
+	 _delay_ms(100);
+	 clip_open();
+	 buzzer_on();
+	 _delay_ms(100);
+	 buzzer_off();
+	}	 
+		 
+		 
 	 	
-		if (leftL>0x20 || centerL<0x20 || rightL>0x20)
-		{
-			break;
-		}
-			
-   	 }
-   	 		stop();
-			_delay_ms(10000);
-			right_degrees(90);
-			//while(1);
    	 
  }
