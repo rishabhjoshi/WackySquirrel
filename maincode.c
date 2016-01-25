@@ -86,8 +86,8 @@ volatile unsigned long int pulse = 0;
 volatile unsigned long int  red;       				
 volatile unsigned long int  blue;      				
 volatile unsigned long int  green;     				
-volatile unsigned char ADC_Conversion(unsigned char);
-volatile unsigned char ADC_Value;
+unsigned char ADC_Conversion(unsigned char);
+unsigned char ADC_Value;
 volatile unsigned char adc_reading;
 volatile unsigned int sharp_left=0,sharp_right=0,sharp_front=0,sharp_left_diff,sharp_right_diff,sharp_front_diff;
 //range of the sharp sensor is 10cm to 80cm
@@ -513,7 +513,7 @@ void blue_read(void) {
 	blue = pulse;  
 	}
 void print_line_sensor(){
-	 if (ADC_Conversion(3)>threshold_line_sensor_value)    //to print left line sensor detection W-white B-black
+	 if (ADC_Conversion(3)>0x10/*threshold_line_sensor_value*/)    //to print left line sensor detection W-white B-black
 	 {	lcd_cursor_char_print(2,5,'B');
 		left_line=1;
 	 }
@@ -522,7 +522,7 @@ void print_line_sensor(){
 		left_line=0;
 	 }
 	 
-	 if (ADC_Conversion(2)>threshold_line_sensor_value)	  //to print center line sensor detection W-white B-black
+	 if (ADC_Conversion(2)>0x10/*threshold_line_sensor_value*/)	  //to print center line sensor detection W-white B-black
 	 {	lcd_cursor_char_print(2,7,'B');
 		center_line=1;
 	 }
@@ -531,7 +531,7 @@ void print_line_sensor(){
 		center_line=0;
 	 }
 	 
-	 if (ADC_Conversion(1)>threshold_line_sensor_value)	  //to print right line sensor detection
+	 if (ADC_Conversion(1)>0x10/*threshold_line_sensor_value*/)	  //to print right line sensor detection
 	 {	lcd_cursor_char_print(2,9,'B');
 		right_line=1;
 	 }
@@ -563,16 +563,6 @@ void print_sharp_sensor(){
  }
 void auto_line_follow(int required_line_conf){
 	 int P,I,D,correction,L_speed,R_speed,error,prev_error,speed=0;
-	 /*if (count==0)
-	 {
-		 P=0;
-		 I=0;
-		 D=0;
-		 correction = 0;
-		 error=0;
-		 prev_error=0;
-		 count++;
-	 }*/
 	 print_line_sensor();
 	
 	 line_conf = 100*left_line + 10*center_line +right_line; //0-white , 1-black
@@ -1007,15 +997,21 @@ void init_devices(){
  int main(void){  
 	 init_devices();
 	 
+	
 	 while(1)
-	 {		print_line_sensor();
-		while (line_conf!=010)
+	 {		//print_line_sensor();
+	 		left();
+	 		velocity(130,130);
+		while (ADC_Conversion(3)>0x20 || ADC_Conversion(2)<0x20 || ADC_Conversion(1)>0x20))
 		{
-			print_line_sensor();
-			left_degrees(2);
+			print_sensor(1,1,3);
+			print_sensor(1,5,2);
+			print_sensor(1,9,1);
+			//print_line_sensor();
+			//left_degrees(2);
 		}
 			stop();
-			_delay_ms(1000);
+			_delay_ms(10000);
 			right_degrees(90);
    	 }
  }
