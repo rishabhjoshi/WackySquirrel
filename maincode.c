@@ -996,22 +996,29 @@ void init_devices(){
 //************whever you use autofollow make sure you reset the value of COUNT TO ZERO.***********************
  int main(void){  
 	 init_devices();
-	 
+	 	unsigned char leftL,centerL,rightL;
+	 	left();
+	 	velocity(130,130);
 	
 	 while(1)
-	 {		//print_line_sensor();
-	 		left();
-	 		velocity(130,130);
-		while (ADC_Conversion(3)>0x20 || ADC_Conversion(2)<0x20 || ADC_Conversion(1)>0x20))
-		{
-			print_sensor(1,1,3);
+	 {		
+	 		leftL = ADC_Conversion(3);
+	 		centerL = ADC_Conversion(2);
+	 		rightL = ADC_Conversion(1);
+	 		print_sensor(1,1,3);
 			print_sensor(1,5,2);
 			print_sensor(1,9,1);
-			//print_line_sensor();
-			//left_degrees(2);
+	 		
+	 	
+		if (leftL>0x20 || centerL<0x20 || rightL>0x20)
+		{
+			break;
 		}
-			stop();
+			
+   	 }
+   	 		stop();
 			_delay_ms(10000);
 			right_degrees(90);
-   	 }
+			//while(1);
+   	 
  }
