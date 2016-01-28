@@ -64,7 +64,7 @@ _____         _        _____				 ___________________________|
 		  room 3			|				|		 |_____|			|
 							|				|							|										 
 ****************************************************************************************************/
-#define __OPTIMIZE__ -O0
+//#define __OPTIMIZE__ -O0
 #define F_CPU 14745600
 #include <avr/io.h>
 #include <avr/interrupt.h>
@@ -313,8 +313,8 @@ void print_battery_voltage(){
 void servo_1(unsigned char degrees) {
  float PositionPanServo = 0;
   PositionPanServo = ((float)degrees / 1.86) + 35.0;
- OCR1AH = 0x00;
- OCR1AL = (unsigned char) PositionPanServo;
+  OCR1AH = 0x00;
+  OCR1AL = (unsigned char) PositionPanServo;
 }
 void servo_2(unsigned char degrees) {
  float PositionTiltServo = 0;
@@ -353,7 +353,7 @@ void angle_rotate(unsigned int Degrees) {
 	float ReqdShaftCount = 0;
 	unsigned long int ReqdShaftCountInt = 0;
 
-	ReqdShaftCount = (float) Degrees/ 4.090; // division by resolution to get shaft count
+	ReqdShaftCount = (float) Degrees/ 3.651; //resolution was 4.090 instead 3.651
 	ReqdShaftCountInt = (unsigned int) ReqdShaftCount;
 	ShaftCountRight = 0;
 	ShaftCountLeft = 0;
@@ -374,12 +374,10 @@ void back_mm(unsigned int DistanceInMM) {
 	linear_distance_mm(DistanceInMM);
 }
 void left_degrees(unsigned int Degrees) {
-	// 88 pulses for 360 degrees rotation 4.090 degrees per count
 	left(); //Turn left
 	angle_rotate(Degrees);
 }
 void right_degrees(unsigned int Degrees) {
-	// 88 pulses for 360 degrees rotation 4.090 degrees per count
 	right(); 
 	angle_rotate(Degrees);
 }
@@ -391,7 +389,7 @@ void print_sensor(char row, char coloumn,unsigned char channel) {
 
 //OUR MAIN FOCUS WOULD BE THESE FUNCTIONS
 void clip_close(void) {	
-	for (int i=0;i<200;i++)
+	for (int i=0;i<200;i++)	
 		servo_1(i);
 	
 	
@@ -399,7 +397,7 @@ void clip_close(void) {
 	//servo_2(0);
 	//wait();
 	_delay_ms(2000);
-}
+} 
 void clip_open(void) {
 		servo_1(0);
 		//wait();
@@ -419,8 +417,20 @@ void buzzer_off (void){
 	port_restore = port_restore & 0xF7;
 	PORTC = port_restore;
 }
-void judge_color(long int red,long int green,long int blue) {
-	 if(red<threshold && green<threshold && blue<threshold)
+char color_detect() {
+	red_read();				//merged judge_color into color_detect
+	lcd_print(1,1,red,5);
+	_delay_ms(1000);
+
+	green_read();
+	lcd_print(1,7,green,5);
+	_delay_ms(1000);
+
+	blue_read();
+	lcd_print(2,1,blue,5);
+	_delay_ms(1000);
+	
+	if(red<threshold && green<threshold && blue<threshold)
 		 color = 'K';
 	 else
 	 {
@@ -445,21 +455,7 @@ void judge_color(long int red,long int green,long int blue) {
 			 color_detect();
 		 }
 	 }
- }
-void color_detect() {
-	red_read();
-	lcd_print(1,1,red,5);
-	_delay_ms(1000);
-
-	green_read();
-	lcd_print(1,7,green,5);
-	_delay_ms(1000);
-
-	blue_read();
-	lcd_print(2,1,blue,5);
-	_delay_ms(1000);
-	
-	judge_color(red,green,blue);
+	 return color;
  }
 char judge_order(char room1,char room2){
 	 char order1;
@@ -468,12 +464,12 @@ char judge_order(char room1,char room2){
 		 if (room1 == room2)
 		 {
 			 order1 = room1;
-			 pref[current_room] = 1;
+			 pref[current_room] = 1;		//vip room
 		 }
 		 else if (room2 == 'K')
 		 {
 			 order1 = room1;
-			 pref[current_room]=0;
+			 pref[current_room]=0;		//regular room
 		 }
 		 else
 		 order1 = 'E';  //E as error we need to detect the color again
@@ -484,7 +480,7 @@ char judge_order(char room1,char room2){
 		 if (room2 == 'K')
 		 {
 			 order1 = 'N';    //N for Do Not Disturb Room
-			 pref[current_room] = (-1);
+			 pref[current_room] = (-1);			//do not disturb room
 		 }
 		 else
 		 {
@@ -658,6 +654,7 @@ void take_order(){
 	_delay_ms(200);
 	velocity(110,110);
 	print_line_sensor();
+	ShaftCountLeft=0
 	while(1)
 	{
 		print_line_sensor();
@@ -666,25 +663,28 @@ void take_order(){
 			stop();
 			break;
 		}
+		else if(ShaftCountLeft>=25)
+		{
+			stop();
+			//right_degrees((ShaftCountLeft-25)*3.651);
+			right();
+			velocity(100,100);
+			ShaftCountLeft=0;
+			//break;
+		}
 	}
 	forward_mm(80);
-	right_degrees(90);
+	right_degrees(88);
 	stop();
 	_delay_ms(200);
-	forward_mm(200);
+	forward_mm(180);
 	stop();
-	
-	color_detect();
-	/*while (color=='E')
-	{
-		color_detect();
-	}*/
-	room1 = color;
-	//forward_mm(150);
+	room1=color_detect();				
+	/*****************************done upto this*************************************/
 	print_sharp_sensor();
 	while(sharp_front >= 200)
 	{
-		follow_right_wall(210);
+		follow_right_wall(210);    //mostly won't work
 		//forward();
 		//velocity(turn_speed,turn_speed);
 		//print_sharp_sensor();
@@ -794,8 +794,7 @@ void sort_orders(){
 			 j++;
 		 }
 	 }
-	 
- }
+}
 
 int follow_right_wall(int required_distance){
 		 int I,correction,L_speed,R_speed,error,prev_error,speed=0,k=2,value,sharp;
