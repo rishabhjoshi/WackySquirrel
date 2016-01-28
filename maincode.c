@@ -654,18 +654,26 @@ void take_order(){
 	
 	char room1,room2;
 	print_sharp_sensor();
-	while(abs(sharp_left_diff) < 300)		//forward till it detects left wall or first indicator
-											//when bot detects left wall the sharp left value will change instantly and instant_sharp_left_distance_difference i.e. sharp_left_diff will be become 500 otherwise it is close to zero 
+	left();
+	_delay_ms(200);
+	velocity(110,110);
+	print_line_sensor();
+	while(1)
 	{
-		forward();
-		velocity(turn_speed,turn_speed);
-		print_sharp_sensor();
+		print_line_sensor();
+		if(line_conf==10)
+		{
+			stop();
+			break;
+		}
 	}
-	stop();
-	left_degrees(90);
-	forward_mm(50);
-	stop();
+	forward_mm(80);
 	right_degrees(90);
+	stop();
+	_delay_ms(200);
+	forward_mm(200);
+	stop();
+	
 	color_detect();
 	/*while (color=='E')
 	{
