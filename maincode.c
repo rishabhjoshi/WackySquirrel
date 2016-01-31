@@ -746,7 +746,7 @@ void take_order() {
 		//print_sharp_sensor();
 		stop();
 		//_delay_ms(20000);
-		//room1=color_detect();
+		room1=color_detect();
 		//print_sharp_sensor();
 		/*while(sharp_front >= 200)
 			follow_right_wall(200);
@@ -756,15 +756,23 @@ void take_order() {
 		_delay_ms(3000);
 		
 		ShaftCountRight = 0;
+		ShaftCountLeft = 0;
 		forward();
 		while(1)
 		{	
 			print_sharp_sensor();
-			if(ShaftCountRight >= 94)
+			if(ShaftCountRight >= 94 && ShaftCountLeft>=94)
 			{
 				stop();
 				break;
-			}				
+			}
+			if(ShaftCountRight>ShaftCountLeft)
+			velocity(255,235);
+			else if (ShaftCountRight<ShaftCountLeft)
+			velocity(235,255);
+			else
+			velocity(255,255);
+			_delay_ms(200);
 		}
 		stop();	
 		_delay_ms(2000);
