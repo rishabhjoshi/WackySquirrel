@@ -1,70 +1,3 @@
-DHAMANE
-
-
-Search Drive
-
-Drive
-.
-Folder Path
-My Drive
-main code
-main code
-NEW 
-Folders and views
-My Drive
-Shared with me
-Google Photos
-Recent
-Starred
-Trash
-38 GB used
-Name
-Owner
-Last modified
-Debug
-me
-Jan 30, 2016
-
-main code.cproj
-me
-Jan 30, 2016
-
-main code.c
-me
-Jan 30, 2016
-
-lcd.h
-me
-Jan 30, 2016
-C
-main code.c
-Details
-Activity
-main code.c
-Sharing Info
-Not shared
-General Info
-Type
-C
-Size
-26 KB (26,908 bytes)
-Storage used
-26 KB (26,908 bytes)
-Location
-main code
-Owner
-me
-Modified
-Jan 30, 2016 by me
-Created
-Jan 30, 2016
-Description
-Add a description
-Download permissions
-Viewers can download
-All selections cleared 
-
-
 /****************************************************************************************************
 	LED pin configuration 
 		|  |  |   |
@@ -148,7 +81,7 @@ const int threshold=700;	//threshold value to decide the color
 //volatile variables
 volatile unsigned long int ShaftCountLeft = 0; 		
 volatile unsigned long int ShaftCountRight = 0; 	
-volatile unsigned int Degrees,sharp,value;					 	
+volatile unsigned int Degrees,sharp,value,direction=0;//current position wrt initialization left -ve and right +ve
 volatile unsigned long int pulse = 0; 				
 volatile unsigned long int  red;       				
 volatile unsigned long int  blue;      				
@@ -160,7 +93,6 @@ volatile unsigned int sharp_left=0,sharp_right=0,sharp_front=0,sharp_left_diff,s
 //range of the sharp sensor is 10cm to 80cm
 int left_line=0,center_line=0,right_line=0;
 int line_conf=0;
-
 
 char color;
 int count;
@@ -174,6 +106,9 @@ int current_room=1;
 
 
 //SENSOR CONFIGURATION AND PREDEFINED FUNCTIONS
+
+
+
 void lcd_port_config (void){
 	DDRC = DDRC | 0xF7; 
 	PORTC = PORTC & 0x80; 
@@ -186,13 +121,16 @@ void linear_distance_mm(unsigned int DistanceInMM) {
 	ReqdShaftCountInt = (unsigned long int) ReqdShaftCount;
 	
 	ShaftCountRight = 0;
+	ShaftCountLeft = 0;
 	while(1)
 	{
 		if(ShaftCountRight > ReqdShaftCountInt)
 		{
 			break;
 		}
+		
 	}
+	
 	stop(); //Stop robot
 }
 void adc_pin_config (void) {
@@ -353,6 +291,7 @@ void right_position_encoder_interrupt_init (void) {
 	sei();   // Enables the global interrupt
 }
 ISR(INT5_vect) {
+	
 	ShaftCountRight++;
 }
 ISR(INT4_vect){
@@ -455,6 +394,7 @@ void lcd_cursor_char_print(char row,char column,char letter){
 	lcd_wr_char(letter);
 }
 void forward (void) {
+	
 	motion_set(0x06);
 }
 void back (void) {
@@ -473,7 +413,7 @@ void angle_rotate(unsigned int Degrees) {
 	float ReqdShaftCount = 0;
 	unsigned long int ReqdShaftCountInt = 0;
 
-	ReqdShaftCount = (float) Degrees/3.60351 ; //was 4.090 division by resolution to get shaft count
+	ReqdShaftCount = (float) Degrees/3.60351 ; //was 4.090
 	ReqdShaftCountInt = (unsigned int) ReqdShaftCount;
 	ShaftCountRight = 0;
 	ShaftCountLeft = 0;
@@ -485,6 +425,7 @@ void angle_rotate(unsigned int Degrees) {
 	}
 	stop(); //Stop robot
 }
+
 void forward_mm(unsigned int DistanceInMM) {
 	forward();
 	linear_distance_mm(DistanceInMM);
@@ -775,6 +716,7 @@ void take_order() {
 	left();
 	_delay_ms(250);
 	velocity(turn_speed-25,turn_speed-25);
+	ShaftCountRight=0;
 	while (1)
 	{
 		print_line_sensor();
@@ -782,6 +724,12 @@ void take_order() {
 		{
 			stop();
 			break;
+		}
+		if(ShaftCountRight>=27)
+		{
+			right();
+			velocity(turn_speed-35,turn_speed-35);
+			ShaftCountRight=0;
 		}
 	}							
 	
@@ -832,6 +780,16 @@ void take_order() {
 			{
 				stop();
 				break;
+			}
+			if(sharp_left<=150){
+				velocity(120,80);
+				_delay_ms(500);
+			}
+			else if(sharp_left>=210){
+				velocity(80,130);
+				_delay_ms(500);
+				velocity(110,90);
+				_delay_ms(500);
 			}
 		}
 		_delay_ms(100);
