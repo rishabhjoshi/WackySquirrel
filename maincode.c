@@ -1,12 +1,12 @@
 /****************************************************************************************************
-	LED pin configuration 
-		|  |  |   |
-		|  |  |   |
-		|  |  |   |
-		   |  |
-		      |
-	    B  G  +   R
-	  27  18  28  17
+LED pin configuration
+|  |  |   |
+|  |  |   |
+|  |  |   |
+|  |
+|
+B  G  +   R
+27  18  28  17
 
 ADC Connection:
 ADC CH.	   PORT	   Sensor
@@ -14,55 +14,55 @@ ADC CH.	   PORT	   Sensor
 1			PF1		White line sensor 3 right
 2			PF2		White line sensor 2 center
 3			PF3		White line sensor 1 left
-9			PK1		Sharp IR range sensor 1  left 
+9			PK1		Sharp IR range sensor 1  left
 11			PK3		Sharp IR range sensor 3  front
 13			PK5		Sharp IR range sensor 5  right
 
 
 LCD Display interpretation:
 ****************************************************************************
- BATTERY VOLTAGE		LEFT SHARP DIS   FRONT SHARP DIS    RIGHT SHARP DIS
- color detected			LEFT WL SENSOR	 CENTER WL SENSOR	RIGHT WL SENSOR		
+BATTERY VOLTAGE		LEFT SHARP DIS   FRONT SHARP DIS    RIGHT SHARP DIS
+color detected			LEFT WL SENSOR	 CENTER WL SENSOR	RIGHT WL SENSOR
 ****************************************************************************
 
 room numbering															  _________
-																		 |		   |
- ________________________________________________________________________|		   |
+|		   |
+________________________________________________________________________|		   |
 |__________________________________   ___________________________________		   |
-								   | |									 |		   |
+| |									 |		   |
 blue		     red    		   | |			green					 |_________|
-								   | |
-								   | |
-								   | |
-								   |_|		 ___________________________
+| |
+| |
+| |
+|_|		 ___________________________
 ____________________________				|							|
-			_____			|				|							|
-		   |_   _|			|	  			|	 __		room1	  __	|	
-			 | |							|	|  |_____________|  |   |
-			 | |____________				|	|  	_____	_____	|	|
-	room4	 |	____________|				|	|__|	 | |	 |__|	|
-			 | |							|			 | |			|		
-			_| |_    						|			 | |			|	
-		   |_____|			|				|			 | |			|
+_____			|				|							|
+|_   _|			|	  			|	 __		room1	  __	|
+| |							|	|  |_____________|  |   |
+| |____________				|	|  	_____	_____	|	|
+room4	 |	____________|				|	|__|	 | |	 |__|	|
+| |							|			 | |			|
+_| |_    						|			 | |			|
+|_____|			|				|			 | |			|
 ____________________________|		 _		|_____       |_|	   _____|
-									| |		  12.5		  40		12.5|			
-									| |									|			
-							   _____| |_____							|			
-							  |_____ H _____|							|											 
-									| |									|
-									| |									|
-									|_|									|
+| |		  12.5		  40		12.5|
+| |									|
+_____| |_____							|
+|_____ H _____|							|
+| |									|
+| |									|
+|_|									|
 _____         _        _____				 ___________________________|
-			 | |			|				|		  room 2			|
-			 | |			|				|		  _____				|
-			 | |			|				 		 |_   _|			|
-	__		 | |	  __	|				 		   | |				|
-   |  |______| |_____|	|	|				 __________| |				|
-   |   ______________	|	|				|__________	 |		    	|
-   |__|				 |__|	|						   | |				|
-							|						  _| |_				|
-		  room 3			|				|		 |_____|			|
-							|				|							|										 
+| |			|				|		  room 2			|
+| |			|				|		  _____				|
+| |			|				 		 |_   _|			|
+__		 | |	  __	|				 		   | |				|
+|  |______| |_____|	|	|				 __________| |				|
+|   ______________	|	|				|__________	 |		    	|
+|__|				 |__|	|						   | |				|
+|						  _| |_				|
+room 3			|				|		 |_____|			|
+|				|							|
 ****************************************************************************************************/
 //#define __OPTIMIZE__ -O0
 #define F_CPU 14745600
@@ -79,13 +79,13 @@ const int max_speed=150,turn_speed=130;
 const int threshold=700;	//threshold value to decide the color
 
 //volatile variables
-volatile unsigned long int ShaftCountLeft = 0; 		
-volatile unsigned long int ShaftCountRight = 0; 	
-volatile unsigned int Degrees,sharp,value,direction=0;//current position wrt initialization left -ve and right +ve
-volatile unsigned long int pulse = 0; 				
-volatile unsigned long int  red;       				
-volatile unsigned long int  blue;      				
-volatile unsigned long int  green;     				
+volatile unsigned long int ShaftCountLeft = 0;
+volatile unsigned long int ShaftCountRight = 0;
+volatile unsigned int Degrees,sharp,value;
+volatile unsigned long int pulse = 0;
+volatile unsigned long int  red;
+volatile unsigned long int  blue;
+volatile unsigned long int  green;
 unsigned char ADC_Conversion(unsigned char);
 unsigned char ADC_Value;
 volatile unsigned char adc_reading;
@@ -93,11 +93,12 @@ volatile unsigned int sharp_left=0,sharp_right=0,sharp_front=0,sharp_left_diff,s
 //range of the sharp sensor is 10cm to 80cm
 int left_line=0,center_line=0,right_line=0;
 int line_conf=0;
+int ShortLeft=0,ShortFront=0,ShortRight=0;	//proximity sensors analog values for distance ranges 0 to 10cms ONLY
 
 char color;
 int count;
 int KLp,KLi=0,KLd=0,KWp=20,KWi=10,KWd=10; //kLp is proportionality constant for auto line follower and kwp for wall following
-//int distance;  
+//int distance;
 float BATT_Voltage;
 int pref[5];								//the type of room is saved sequentially 1->vip	0->regular	(-1)->DND room
 char orders[5];							//the orders of the rooms 1234 in sequence 2nd position has order room1's order
@@ -106,9 +107,6 @@ int current_room=1;
 
 
 //SENSOR CONFIGURATION AND PREDEFINED FUNCTIONS
-
-
-
 void lcd_port_config (void){
 	DDRC = DDRC | 0xF7; 
 	PORTC = PORTC & 0x80; 
@@ -121,16 +119,13 @@ void linear_distance_mm(unsigned int DistanceInMM) {
 	ReqdShaftCountInt = (unsigned long int) ReqdShaftCount;
 	
 	ShaftCountRight = 0;
-	ShaftCountLeft = 0;
 	while(1)
 	{
 		if(ShaftCountRight > ReqdShaftCountInt)
 		{
 			break;
 		}
-		
 	}
-	
 	stop(); //Stop robot
 }
 void adc_pin_config (void) {
@@ -291,7 +286,6 @@ void right_position_encoder_interrupt_init (void) {
 	sei();   // Enables the global interrupt
 }
 ISR(INT5_vect) {
-	
 	ShaftCountRight++;
 }
 ISR(INT4_vect){
@@ -314,6 +308,11 @@ void servo2_pin_config (void) {
  DDRB  = DDRB | 0x40;  
  PORTB = PORTB | 0x40; 
 }
+void servo3_pin_config (void)
+{
+	DDRB  = DDRB | 0x80;  //making PORTB 7 pin output
+	PORTB = PORTB | 0x80; //setting PORTB 7 pin to logic 1
+}
 void timer1_init(void) {
  TCCR1B = 0x00; //stop
  TCNT1H = 0xFC; //Counter high value to which OCR1xH value is to be compared with
@@ -322,6 +321,8 @@ void timer1_init(void) {
  OCR1AL = 0xFF;	//Output Compare Register low Value For servo 1
  OCR1BH = 0x03;	//Output compare Register high value for servo 2
  OCR1BL = 0xFF;	//Output Compare Register low Value For servo 2
+ OCR1CH = 0X03;
+ OCR1CL = 0XFF;
  ICR1H  = 0x03;	
  ICR1L  = 0xFF;
  TCCR1A = 0xAB; /*{COM1A1=1, COM1A0=0; COM1B1=1, COM1B0=0; COM1C1=1 COM1C0=0}
@@ -381,6 +382,13 @@ void servo_2(unsigned char degrees) {
  OCR1BH = 0x00;
  OCR1BL = (unsigned char) PositionTiltServo;
 }
+void servo_3(unsigned char degrees)
+{
+	float PositionServo = 0;
+	PositionServo = ((float)degrees / 1.86) + 35.0;
+	OCR1CH = 0x00;
+	OCR1CL = (unsigned char) PositionServo;
+}
 void servo_1_free (void) {
  OCR1AH = 0x03; 
  OCR1AL = 0xFF; //Servo 1 off
@@ -394,17 +402,20 @@ void lcd_cursor_char_print(char row,char column,char letter){
 	lcd_wr_char(letter);
 }
 void forward (void) {
-	
 	motion_set(0x06);
+	//velocity(252,255);
 }
 void back (void) {
 	motion_set(0x09);
+	//velocity(252,255);
 }
 void left (void) {
 	motion_set(0x05);
+	//velocity(252,255);
 }
 void right (void) {
 	motion_set(0x0A);
+	//velocity(252,255);
 }
 void stop (void) {
 	motion_set(0x00);
@@ -413,7 +424,7 @@ void angle_rotate(unsigned int Degrees) {
 	float ReqdShaftCount = 0;
 	unsigned long int ReqdShaftCountInt = 0;
 
-	ReqdShaftCount = (float) Degrees/3.60351 ; //was 4.090
+	ReqdShaftCount = (float) Degrees/3.60351 ; //was 4.090 division by resolution to get shaft count
 	ReqdShaftCountInt = (unsigned int) ReqdShaftCount;
 	ShaftCountRight = 0;
 	ShaftCountLeft = 0;
@@ -425,7 +436,6 @@ void angle_rotate(unsigned int Degrees) {
 	}
 	stop(); //Stop robot
 }
-
 void forward_mm(unsigned int DistanceInMM) {
 	forward();
 	linear_distance_mm(DistanceInMM);
@@ -437,7 +447,9 @@ void back_mm(unsigned int DistanceInMM) {
 void left_degrees(unsigned int Degrees) {
 	// 88 pulses for 360 degrees rotation 4.090 degrees per count
 	left(); //Turn left
+	
 	angle_rotate(Degrees);
+	
 }
 void right_degrees(unsigned int Degrees) {
 	// 88 pulses for 360 degrees rotation 4.090 degrees per count
@@ -448,8 +460,22 @@ void print_sensor(char row, char coloumn,unsigned char channel) {
 	ADC_Value = ADC_Conversion(channel);
 	lcd_print(row, coloumn, ADC_Value, 3);
 }
-
-
+void AlignColorSensor(){
+		servo_3(95);
+		_delay_ms(1000);
+		int i=0;
+		while (i<=95)
+		{
+			servo_3(95-i);
+			_delay_ms(10);
+			i++;
+		}
+		_delay_ms(1000);
+}
+void ResetColorSensor(){
+	servo_3(95);
+	_delay_ms(2000);
+}
 //OUR MAIN FOCUS WOULD BE THESE FUNCTIONS
 void clip_close(void) {	
 	for (int i=0;i<200;i++)
@@ -481,6 +507,7 @@ void buzzer_off (void){
 	PORTC = port_restore;
 }
 char color_detect() {
+	AlignColorSensor();
 	red_read();
 	lcd_print(1,1,red,5);
 	_delay_ms(1000);
@@ -714,9 +741,9 @@ void take_order() {
 	char room1,room2;
 	print_line_sensor();			//final function for turning left or right till line sensor detects the line
 	left();
-	_delay_ms(250);
-	velocity(turn_speed-25,turn_speed-25);
-	ShaftCountRight=0;
+	_delay_ms(200);
+	velocity(90,90);
+	ShaftCountLeft=0;
 	while (1)
 	{
 		print_line_sensor();
@@ -725,19 +752,29 @@ void take_order() {
 			stop();
 			break;
 		}
-		if(ShaftCountRight>=27)
-		{
-			right();
-			velocity(turn_speed-35,turn_speed-35);
-			ShaftCountRight=0;
-		}
 	}							
-	
+	red=ShaftCountLeft+5;
 	forward_mm(80);
 	_delay_ms(100);
-	right_degrees(90);
+	ShaftCountLeft=0;
+	right();
+	velocity(turn_speed,turn_speed);
+	while (1)
+	{
+		if (ShaftCountLeft>=red)
+		{
+			stop();
+			break;
+		}
+		
+	}
+	//buzzer_on();
+	//_delay_ms(100);
+	//buzzer_off();
+	//_delay_ms(10000);
+	//right_degrees(90);
 	
-	while(current_room<5)
+	while(current_room<4)
 	{
 		//print_sharp_sensor();
 		_delay_ms(100);
@@ -746,7 +783,7 @@ void take_order() {
 		//print_sharp_sensor();
 		stop();
 		//_delay_ms(20000);
-		room1=color_detect();
+		//room1=color_detect();
 		//print_sharp_sensor();
 		/*while(sharp_front >= 200)
 			follow_right_wall(200);
@@ -756,54 +793,38 @@ void take_order() {
 		_delay_ms(3000);
 		
 		ShaftCountRight = 0;
-		ShaftCountLeft = 0;
 		forward();
 		while(1)
 		{	
-			print_sharp_sensor();
-			if(ShaftCountRight >= 94 && ShaftCountLeft>=94)
-			{
-				stop();
-				break;
-			}
-			if(ShaftCountRight>ShaftCountLeft)
-			velocity(255,235);
-			else if (ShaftCountRight<ShaftCountLeft)
-			velocity(235,255);
-			else
-			velocity(255,255);
-			_delay_ms(200);
-		}
-		stop();	
-		_delay_ms(2000);
-		//room2=color_detect();
-		right_degrees(180);
-		_delay_ms(1000);
-		forward();
-		ShaftCountRight=0;
-		while(1)
-		{
 			print_sharp_sensor();
 			if(ShaftCountRight >= 94)
 			{
 				stop();
 				break;
-			}
-			if(sharp_left<=150){
-				velocity(120,80);
-				_delay_ms(500);
-			}
-			else if(sharp_left>=210){
-				velocity(80,130);
-				_delay_ms(500);
-				velocity(110,90);
-				_delay_ms(500);
+			}				
+		}
+		stop();	
+		_delay_ms(2000);
+		//room2=color_detect();
+		//right_degrees(180);
+		//_delay_ms(1000);
+		back();
+		velocity(115,120);
+		//check velovity
+		//ShaftCountRight=0;
+		/*while(1)
+		{
+			//print_sharp_sensor();
+			if(ShaftCountRight >= 94)
+			{
+				stop();
+				break;
 			}
 		}
-		_delay_ms(100);
-		stop();
-		forward();
-		velocity(110,110);
+		_delay_ms(100);*/
+		//stop();
+		//back();
+		//velocity(110,120);
 		print_line_sensor();
 		while (1)
 		{
@@ -815,8 +836,8 @@ void take_order() {
 			}
 			
 		}
-		back_mm(80);
-		left_degrees(90);
+		forward_mm(170);
+		right_degrees(90);
 		buzzer_on();
 		_delay_ms(500);		//testing
 		buzzer_off();
@@ -875,8 +896,7 @@ void take_order() {
 		}
 		current_room++;
 		}
-}	
-
+}
 void sort_orders(){ 
 	 int j=2;
 	 for(int i=1;i<5;i++)
@@ -891,7 +911,6 @@ void sort_orders(){
 	 }
 	 
  }
-
 void follow_right_wall(){
 		 //int correction,L_speed,R_speed,error,prev_error,value,sharp;
 			//KWp=10;
@@ -954,7 +973,6 @@ int follow_left_wall(int required_distance){
 		 }
 		 
 }
-
 void pickup_service_dumping_section(char current_service){		
 	int cross,tempv=0;
 	if (current_service=='R')
@@ -1007,8 +1025,6 @@ void pickup_service_home(char current_service){
 			stop();
 	}
 }
-
-
 void dump_garbage(current_room){		
 	//dumping garbage will always initiate from cross inside the room i.e. room home
 	if(current_room!=4)
@@ -1109,6 +1125,7 @@ void dump_garbage(current_room){
 void port_init(void){
 	 servo1_pin_config(); //Configure PORTB 5 pin for servo motor 1 operation
 	 servo2_pin_config(); //Configure PORTB 6 pin for servo motor 2 operation
+	 servo3_pin_config(); //servo3
 	 motion_pin_config(); //robot motion pins config
 	 left_encoder_pin_config(); 
 	 right_encoder_pin_config(); 
@@ -1132,31 +1149,54 @@ void init_devices(){
 	color_sensor_scaling();
 	sei();   // Enables the global interrupt
 }
-//************whever you use autofollow make sure you reset the value of COUNT TO ZERO.***********************
- int main(void){  
-	init_devices();
-	//print_sharp_sensor();
-	/*print_sharp_sensor();
-	 
-	while(1)
-	{
-		follow_right_wall(300);
-		if(sharp_right==800)
-		{	
-			break;
-			stop();
-		}		
-	}*/	 
-	//take_order();
-	//print_sharp_sensor();
-	//ShaftCountRight=0;
-	//take_order();
+void follow_line(int RqrdLineConf){
+	int last_line_conf=0;
+	print_line_sensor();
 	forward();
+	while(line_conf!=RqrdLineConf)
+	{	
+		if(line_conf==100)
+			velocity(50,150);
+		else if(line_conf==110)
+			velocity(70,100);
+		else if(line_conf==1)
+			velocity(150,50);
+		else if(line_conf==11)
+			velocity(100,70);
+		else if (line_conf==10)
+			velocity(120,120);
+		else if(line_conf==111)
+			velocity(100,100);
+		else if(line_conf==0)
+		{
+			if (last_line_conf>10)
+				velocity(0,80);
+			else if(last_line_conf<10)
+				velocity(80,0);
+			else
+			velocity(100,100);
+		}
+		else
+			velocity(100,100);
+			last_line_conf=line_conf;
+	print_line_sensor();
+	//_delay_ms(50);
+	}
+	stop();
+	return;
+}
+int main(void){  
+	init_devices();
 	while (1)
-	follow_right_wall();
-	print_sharp_sensor();
-	//stop();
-	//buzzer_on();
+	{
+		follow_line(111);
+		buzzer_on();
+		_delay_ms(250);
+		buzzer_off();
+		_delay_ms(5000);			
+	}
+	
+	
 	
 		
 }
