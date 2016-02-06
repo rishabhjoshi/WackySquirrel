@@ -1000,7 +1000,7 @@ void pickup_service_dumping_section(char current_service){
 	stop();
 	return;
 }
-void pickup_service_home(char current_service){			
+void pickup_service_Shome(char current_service){			
 	//the centre point of the two wheels is exactly on service home
 	int cross,tempv=0;
 	if(current_service=='G')
@@ -1126,22 +1126,107 @@ void dump_garbage(current_room){
 	}
 }
 void enter_room(int room){
-	
+	if(room!=4){
+		forward();
+		print_line_sensor();
+		
+		while(line_conf!=111){
+			print_line_sensor();
+			}
+		stop();
+		forward_mm(200);	//to get the wheels centre at the home centre
+		if(room!=2){
+			if(room==1)
+			left();
+			else if(room==3)
+			right();
+		}
+		ShaftCountRight=0;
+		//print_sharp_sensor();
+		while(ShaftCountRight<=90)//will have to exact shaft count to reach at the doorstep the room from home
+		{
+			print_sharp_sensor();
+			follow_right_wall(125);
+			
+		}
+		stop();
+		left_degrees(90);
+	}		
+	else if(room==4){
+		forward_mm(600);
+		right_degrees(90);
+	}
+	forward_mm(140);
+		print_line_sensor();
+		if(line_conf==0)	
+		{
+			left();
+			velocity(70,70);
+			ShaftCountRight=0;
+			while(ShaftCountRight<10)
+			{
+				print_line_sensor();
+				if(line_conf==10)
+				{
+					stop();
+					break;
+					follow_line(111);
+				}
+			}
+			if(line_conf!=10)
+			{
+				ShaftCountRight=0;
+				right();
+				velocity(70,70);
+				print_line_sensor();
+				while(ShaftCountRight<20)
+				{
+					print_line_sensor();
+					if(line_conf==10)
+					{	
+						stop();
+						break;
+						follow_line(111);
+					}
+				}
+				if(line_conf!=10){
+					ShaftCountRight=0
+					left();
+					velocity(70,70);
+					while(ShaftCountRight<10);
+					stop();	
+					forward();
+					velocity(100,100);
+					print_line_sensor();
+					while(1)
+					{
+						print_line_sensor();
+						if(line_conf==111)
+						{
+							stop();
+							break;
+						}
+					}
+				}
+				
+			}
+		}
+		else if(line_conf!=0)
+		follow_line(111);
+			
+	forward_mm(200);
 }
 void delivery(char service,int room,char position){
-		int garbage;	//is 1 if its there
 		//position can be only dumping section or service home 
 		//for service home position=s
 		//for dumping area position=D
-		if(position==D){
+		if(position==D)
 			pickup_service_dumping_section(service);		//bot has picked up the service and came to service and facing to the center
-			enter_room(room);		//room will enter and stop at the room center where ine conf=111
-			//detect_garbage();		//detect garbage
-			
-			
-		}
-		
-		
+		else 
+			pickup_service_Shome(service);		
+
+		enter_room(room);		//bot will enter and stop at the room center where line_conf=111
+		dump_garbage(room);		//it will detect the garbage, put the service at empty space and pick up the garbage and dump it and wait at dumping section otherwise home
 }
 
 //initialization functions
