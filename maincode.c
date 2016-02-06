@@ -63,6 +63,17 @@ __		 | |	  __	|				 		   | |				|
 |						  _| |_				|
 room 3			|				|		 |_____|			|
 |				|							|
+
+required functions-
+1.take order: will judge the orders and go to service home
+2.delivery :function(which can deliver the service to the room from service home or dumping section 
+						moreover dump the garbage and stay at dumping section if any otherwise will come to home)
+
+
+
+
+
+
 ****************************************************************************************************/
 //#define __OPTIMIZE__ -O0
 #define F_CPU 14745600
@@ -308,8 +319,7 @@ void servo2_pin_config (void) {
  DDRB  = DDRB | 0x40;  
  PORTB = PORTB | 0x40; 
 }
-void servo3_pin_config (void)
-{
+void servo3_pin_config (void) {
 	DDRB  = DDRB | 0x80;  //making PORTB 7 pin output
 	PORTB = PORTB | 0x80; //setting PORTB 7 pin to logic 1
 }
@@ -382,8 +392,7 @@ void servo_2(unsigned char degrees) {
  OCR1BH = 0x00;
  OCR1BL = (unsigned char) PositionTiltServo;
 }
-void servo_3(unsigned char degrees)
-{
+void servo_3(unsigned char degrees) {
 	float PositionServo = 0;
 	PositionServo = ((float)degrees / 1.86) + 35.0;
 	OCR1CH = 0x00;
@@ -1116,7 +1125,24 @@ void dump_garbage(current_room){
 		}
 	}
 }
-
+void enter_room(int room){
+	
+}
+void delivery(char service,int room,char position){
+		int garbage;	//is 1 if its there
+		//position can be only dumping section or service home 
+		//for service home position=s
+		//for dumping area position=D
+		if(position==D){
+			pickup_service_dumping_section(service);		//bot has picked up the service and came to service and facing to the center
+			enter_room(room);		//room will enter and stop at the room center where ine conf=111
+			//detect_garbage();		//detect garbage
+			
+			
+		}
+		
+		
+}
 
 //initialization functions
 
