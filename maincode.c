@@ -14,6 +14,11 @@ ADC CH.	   PORT	   Sensor
 1			PF1		White line sensor 3 right
 2			PF2		White line sensor 2 center
 3			PF3		White line sensor 1 left
+4			PF4		IR Proximity analog sensor 1
+5			PF5		IR Proximity analog sensor 2
+6			PF6		IR Proximity analog sensor 3
+7			PF7		IR Proximity analog sensor 4
+8			PK0		IR Proximity analog sensor 5
 9			PK1		Sharp IR range sensor 1  left
 11			PK3		Sharp IR range sensor 3  front
 13			PK5		Sharp IR range sensor 5  right
@@ -90,8 +95,8 @@ const int max_speed=150,turn_speed=130;
 const int threshold=700;	//threshold value to decide the color
 
 //volatile variables
-volatile unsigned long int ShaftCountLeft = 0;
-volatile unsigned long int ShaftCountRight = 0;
+volatile unsigned long int ShaftCountLeft = 0,shaftleft=0;
+volatile unsigned long int ShaftCountRight = 0,shaftright=0;
 volatile unsigned int Degrees,sharp,value;
 volatile unsigned long int pulse = 0;
 volatile unsigned long int  red;
@@ -298,9 +303,11 @@ void right_position_encoder_interrupt_init (void) {
 }
 ISR(INT5_vect) {
 	ShaftCountRight++;
+	shaftright++;
 }
 ISR(INT4_vect){
 	ShaftCountLeft++;
+	shaftleft++;
 } 
 void motion_set (unsigned char Direction){
 	unsigned char PortARestore = 0;
@@ -655,20 +662,22 @@ void print_sharp_sensor(){
 	 sharp =side_Sharp_GP2D12_estimation(value);
 	 sharp_left_diff = sharp_left - sharp;
 	 sharp_left=sharp;
-	 //lcd_print(1,1,value,3);
-	 lcd_print(1,6,sharp,3);
+	 lcd_print(2,1,value,3);
+	 lcd_print(1,1,sharp,3);
 	 value = ADC_Conversion(11);
 	 sharp=Sharp_GP2D12_estimation(value);
 	 sharp_front_diff = sharp_front - sharp;
 	 sharp_front=sharp;
-	 lcd_print(1,10,sharp,3);
+	 lcd_print(1,5,sharp,3);
+	 lcd_print(2,5,value,3);
 	 value = ADC_Conversion(13);
 	 sharp=side_Sharp_GP2D12_estimation(value);
 	 sharp_right_diff = sharp_right - sharp;
 	 sharp_right=sharp;
-	 lcd_print(1,14,sharp,3);
-	 lcd_print(2,1,value,3);
+	 lcd_print(1,9,sharp,3);
+	 lcd_print(2,9,value,3);
 	 //lcd_print(1,13,sharp,3);
+	 
  }
 void auto_line_follow(int required_line_conf){
 	 int I=0,correction=0,L_speed=0,R_speed=0,error=0,prev_error=0,speed=0;
@@ -921,41 +930,34 @@ void sort_orders(){
 	 
  }
 void follow_right_wall(){
-		 //int correction,L_speed,R_speed,error,prev_error,value,sharp;
-			//KWp=10;
-			int error;
-		 	value = ADC_Conversion(13);
-	     	sharp=side_Sharp_GP2D12_estimation(value);
+		 
+			//int error;
+		 	//value = ADC_Conversion(13);
+	     	//sharp=side_Sharp_GP2D12_estimation(value);
 	 	 	//sharp_right_diff = sharp_right - sharp;
-			sharp_right=sharp;
-			lcd_print(1,14,sharp,3);
+			//sharp_right=sharp;
+			//lcd_print(1,14,sharp,3);
 			
-			_delay_ms(100);     
-		 if(sharp_right!=800)
+			//_delay_ms(100);
+			     
+		 if(value>10)
 		 {	
-			 
-			 
-		 	 //error = sharp_right - required_distance;
-			 //correction = error;
-			 //L_speed = 100 + correction;
-			 //R_speed = 100 - correction;
-			 //prev_error = error;
-			 //error
-			 if (value<27)
-				 velocity(120,100);
-			 else if(value>32)
-				 velocity(100,120);
+			 if (value<45)
+				 velocity(90,80);
+			 else if(value>55)
+				 velocity(80,90);
 			 else
-				velocity(100,100);
+				velocity(80,80);
+			
 			// _delay_ms(100);
-			 //velocity(L_speed,R_speed);
-		 _delay_ms(100);
+			//velocity(L_speed,R_speed);
+		 _delay_ms(200);
 		 }
 		 else
 		 	stop();
 		 
 }
-int follow_left_wall(int required_distance){
+void follow_left_wall(int required_distance){
 		 int I,correction,L_speed,R_speed,error,prev_error,speed=0,k=2; //k is speed proportionality constant
 		 
 		 	value = ADC_Conversion(9);
@@ -1126,6 +1128,7 @@ void dump_garbage(current_room){
 	}
 }
 void enter_room(int room){
+	int flag=0;
 	if(room!=4){
 		forward();
 		print_line_sensor();
@@ -1156,71 +1159,78 @@ void enter_room(int room){
 		forward_mm(600);
 		right_degrees(90);
 	}
-	forward_mm(140);
-		print_line_sensor();
-		if(line_conf==0)	
+	forward_mm(145);
+	print_line_sensor();
+	if(line_conf==0)
+	{
+		ShaftCountRight=0;
+		left();
+		velocity(90,90);
+		while(ShaftCountRight<15)
 		{
-			left();
-			velocity(70,70);
+			print_line_sensor();
+			if(line_conf!=0)
+			{
+				stop();
+				flag=1;
+				break;
+			}
+		}
+		if (flag==0)
+		{
 			ShaftCountRight=0;
-			while(ShaftCountRight<10)
+			right();
+			velocity(90,90);
+			while(ShaftCountRight<30)
 			{
 				print_line_sensor();
-				if(line_conf==10)
+				if(line_conf!=0)
+				{
+					stop();
+					flag=1;
+					//follow_line(111);
+					break;
+				}
+			}
+		}
+		
+		if(flag==0)
+		{
+			ShaftCountRight=0;
+			left();
+			velocity(100,100);
+			while(ShaftCountRight<15);
+			stop();
+			forward();
+			velocity(100,100);
+			//print_line_sensor();
+			while(1)
+			{
+				print_line_sensor();
+				if(line_conf==111)
 				{
 					stop();
 					break;
-					follow_line(111);
 				}
-			}
-			if(line_conf!=10)
-			{
-				ShaftCountRight=0;
-				right();
-				velocity(70,70);
-				print_line_sensor();
-				while(ShaftCountRight<20)
-				{
-					print_line_sensor();
-					if(line_conf==10)
-					{	
-						stop();
-						break;
-						follow_line(111);
-					}
-				}
-				if(line_conf!=10){
-					ShaftCountRight=0
-					left();
-					velocity(70,70);
-					while(ShaftCountRight<10);
-					stop();	
-					forward();
-					velocity(100,100);
-					print_line_sensor();
-					while(1)
-					{
-						print_line_sensor();
-						if(line_conf==111)
-						{
-							stop();
-							break;
-						}
-					}
-				}
-				
 			}
 		}
-		else if(line_conf!=0)
+		
+		if (flag==1)
 		follow_line(111);
-			
-	forward_mm(200);
+		
+	}
+	
+	else if(line_conf!=0)
+	follow_line(111);
+	
+	stop();
+	forward_mm(80);
 }
 void delivery(char service,int room,char position){
 		//position can be only dumping section or service home 
 		//for service home position=s
 		//for dumping area position=D
-		if(position==D)
+		if(position=='D')
 			pickup_service_dumping_section(service);		//bot has picked up the service and came to service and facing to the center
 		else 
 			pickup_service_Shome(service);		
@@ -1228,86 +1238,229 @@ void delivery(char service,int room,char position){
 		enter_room(room);		//bot will enter and stop at the room center where line_conf=111
 		dump_garbage(room);		//it will detect the garbage, put the service at empty space and pick up the garbage and dump it and wait at dumping section otherwise home
 }
+void calibrate(){
+	int left1=ShaftCountLeft,right1=ShaftCountRight;
+
+	if (right1>left1)
+	{
+		int diff=(right1-left1);
+		forward();
+		velocity(100,0);
+		ShaftCountRight=0;
+		ShaftCountLeft=0;
+		while (1)
+		{
+			if(ShaftCountLeft >= ShaftCountRight)
+			{
+				velocity(100,100);
+				return;
+			}
+		}
+		
+	}
+	else if (right1<left1)
+	{
+		forward();
+		velocity(0,100);
+		while (1)
+		{
+			if(ShaftCountRight >= ShaftCountLeft)
+			{
+				velocity(100,100);
+				return;
+			}
+		}
+	}
+	else return;
+}
+void follow_line(int RqrdLineConf){
+	int last_line_conf=0;
+	print_line_sensor();
+	//forward();
+	back();
+	while(line_conf!=RqrdLineConf)
+	{
+		if(line_conf==100)
+		velocity(50,150);
+		else if(line_conf==110)
+		velocity(70,100);
+		else if(line_conf==1)
+		velocity(150,50);
+		else if(line_conf==11)
+		velocity(100,70);
+		else if (line_conf==10)
+		velocity(120,120);
+		else if(line_conf==111)
+		velocity(100,100);
+		else if(line_conf==0)
+		{
+			if (last_line_conf>10)
+			velocity(0,80);
+			else if(last_line_conf<10)
+			velocity(80,0);
+			else
+			velocity(100,100);
+		}
+		else
+		velocity(100,100);
+		last_line_conf=line_conf;
+		print_line_sensor();
+		//_delay_ms(50);
+	}
+	stop();
+	return;
+}
+void MOSFET_switch_config (void)
+{
+	DDRH = DDRH | 0x0C; //make PORTH 3 and PORTH 1 pins as output
+	PORTH = PORTH & 0xF3; //set PORTH 3 and PORTH 1 pins to 0
+
+	DDRG = DDRG | 0x04; //make PORTG 2 pin as output
+	PORTG = PORTG & 0xFB; //set PORTG 2 pin to 0
+}
+
 
 //initialization functions
-
-
-
-void port_init(void){
-	 servo1_pin_config(); //Configure PORTB 5 pin for servo motor 1 operation
-	 servo2_pin_config(); //Configure PORTB 6 pin for servo motor 2 operation
-	 servo3_pin_config(); //servo3
+void port_init(){
+	 //servo1_pin_config(); //Configure PORTB 5 pin for servo motor 1 operation
+	 //servo2_pin_config(); //Configure PORTB 6 pin for servo motor 2 operation
+	 //servo3_pin_config(); //servo3
 	 motion_pin_config(); //robot motion pins config
 	 left_encoder_pin_config(); 
 	 right_encoder_pin_config(); 
-	 color_sensor_pin_config();
-	 GPIO_pin_config();	//GPIO pins config for LEDs to glow 
-	 buzzer_pin_config(); 
+	 //color_sensor_pin_config();
+	 //GPIO_pin_config();	//GPIO pins config for LEDs to glow 
+	 //buzzer_pin_config(); 
 	 lcd_port_config();		
 	 adc_pin_config();
+	 MOSFET_switch_config(); //control switch for ir and line sensor leds
  }
 void init_devices(){
 	cli(); //Clears the global interrupt
 	port_init();  //Initializes all the ports
-	timer1_init();   //PWM for servo pins
+	//timer1_init();   //PWM for servo pins
 	timer5_init();	 //PWM for velocity of bot or DC motors
-	color_sensor_pin_interrupt_init();
+	//color_sensor_pin_interrupt_init();
 	left_position_encoder_interrupt_init();
 	right_position_encoder_interrupt_init();
 	adc_init();
 	lcd_set_4bit();
 	lcd_init();
-	color_sensor_scaling();
+	//color_sensor_scaling();
 	sei();   // Enables the global interrupt
 }
-void follow_line(int RqrdLineConf){
-	int last_line_conf=0;
-	print_line_sensor();
+/*int main(void){  		//testing function to move the bot in alleys
+	init_devices();	
+	forward_mm(300);
 	forward();
-	while(line_conf!=RqrdLineConf)
-	{	
-		if(line_conf==100)
-			velocity(50,150);
-		else if(line_conf==110)
-			velocity(70,100);
-		else if(line_conf==1)
-			velocity(150,50);
-		else if(line_conf==11)
-			velocity(100,70);
-		else if (line_conf==10)
-			velocity(120,120);
-		else if(line_conf==111)
-			velocity(100,100);
-		else if(line_conf==0)
+	ShaftCountLeft=0;
+	ShaftCountRight=0;
+	while (ADC_Conversion(6)>=100)
+	{
+		value = ADC_Conversion(13);
+		print_sensor(1,1,13);
+		if(value>10)
 		{
-			if (last_line_conf>10)
-				velocity(0,80);
-			else if(last_line_conf<10)
-				velocity(80,0);
+			if (value<43)
+			velocity(110,90);
+			else if (value<46)
+			velocity(100,90);
+			else if(value>53)
+			velocity(90,110);
+			else if (value>51)
+			velocity(90,100);
 			else
 			velocity(100,100);
 		}
 		else
-			velocity(100,100);
-			last_line_conf=line_conf;
-	print_line_sensor();
-	//_delay_ms(50);
+		{
+			stop();
+			break;
+			
+		}		
+	}
+		forward();
+		if ((int) ShaftCountRight>(int) ShaftCountLeft)
+		{
+			velocity(100,0);
+			while (1)
+				if(ShaftCountLeft>=ShaftCountRight)
+					break;
+			
+		}
+		else if ((int) ShaftCountRight<(int) ShaftCountLeft)
+		{
+			velocity(0,100);
+			shaftright=0;
+			shaftleft=0;
+			while (1)
+				if(ShaftCountRight>=ShaftCountLeft)
+					break;
+		}
+		lcd_print(2,1,ShaftCountLeft,4);
+		lcd_print(2,7,ShaftCountRight,4);
+		stop();
+	while (1);	
+}*/
+
+int main(){
+	init_devices();
+	forward();
+	//velocity(120,120);
+	while(1){
+	if(ADC_Conversion(9)>40)
+		{stop();
+		forward();
+		_delay_ms(400);
+		stop();
+		break;}
+	}	
+	//color sensing
+	_delay_ms(1000);
+	forward();
+	while(1)	{
+		
+		if(ADC_Conversion(6)<60)
+		break;
 	}
 	stop();
-	return;
-}
-int main(void){  
-	init_devices();
-	while (1)
-	{
-		follow_line(111);
-		buzzer_on();
-		_delay_ms(250);
-		buzzer_off();
-		_delay_ms(5000);			
+	//check right wall distance. if too less then turn the bot right and according to the distace move it towards the indicator.
+	//color sensing
+	_delay_ms(2000);
+	
+	back();
+	while(1){
+		print_line_sensor();
+		if(line_conf==111)
+		break;	
 	}
-	
-	
-	
+	stop();
+	forward();
+	_delay_ms(560);
+	stop();
+	_delay_ms(2000);
+	//right_degrees(30);
+	//_delay_ms(1000);
+	right();
+	_delay_ms(100);
+	velocity(90,90);
+	while(1)
+	{
+		print_line_sensor();
+		if (line_conf==10)
+		{
+			stop();
+			break;
+		}
 		
+	}
+	_delay_ms(2000);
+	print_line_sensor();
+	back();
+		//back();
+		follow_line(111);
+	stop();
+	timer5_init();
+	forward();
+	while(1);
 }
