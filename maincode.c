@@ -1,11 +1,11 @@
 /****************************************************************************************************
 LED pin configuration
-|  |  |   |
-|  |  |   |
-|  |  |   |
-|  |
-|
-B  G  +   R
+|	|	|   |
+|	|	|   |
+|	|	|   |
+	|	|
+		|
+B	G	 +   R
 27  18  28  17
 
 ADC Connection:
@@ -30,55 +30,6 @@ BATTERY VOLTAGE		LEFT SHARP DIS   FRONT SHARP DIS    RIGHT SHARP DIS
 color detected			LEFT WL SENSOR	 CENTER WL SENSOR	RIGHT WL SENSOR
 ****************************************************************************
 
-room numbering															  _________
-|		   |
-________________________________________________________________________|		   |
-|__________________________________   ___________________________________		   |
-| |									 |		   |
-blue		     red    		   | |			green					 |_________|
-| |
-| |
-| |
-|_|		 ___________________________
-____________________________				|							|
-_____			|				|							|
-|_   _|			|	  			|	 __		room1	  __	|
-| |							|	|  |_____________|  |   |
-| |____________				|	|  	_____	_____	|	|
-room4	 |	____________|				|	|__|	 | |	 |__|	|
-| |							|			 | |			|
-_| |_    						|			 | |			|
-|_____|			|				|			 | |			|
-____________________________|		 _		|_____       |_|	   _____|
-| |		  12.5		  40		12.5|
-| |									|
-_____| |_____							|
-|_____ H _____|							|
-| |									|
-| |									|
-|_|									|
-_____         _        _____				 ___________________________|
-| |			|				|		  room 2			|
-| |			|				|		  _____				|
-| |			|				 		 |_   _|			|
-__		 | |	  __	|				 		   | |				|
-|  |______| |_____|	|	|				 __________| |				|
-|   ______________	|	|				|__________	 |		    	|
-|__|				 |__|	|						   | |				|
-|						  _| |_				|
-room 3			|				|		 |_____|			|
-|				|							|
-
-required functions-
-1.take order: will judge the orders and go to service home
-2.delivery :function(which can deliver the service to the room from service home or dumping section 
-						moreover dump the garbage and stay at dumping section if any otherwise will come to home)
-
-
-
-
-
-
 ****************************************************************************************************/
 //#define __OPTIMIZE__ -O0
 #define F_CPU 14745600
@@ -95,8 +46,8 @@ const int max_speed=150,turn_speed=130;
 const int threshold=700;	//threshold value to decide the color
 
 //volatile variables
-volatile unsigned long int ShaftCountLeft = 0,shaftleft=0;
-volatile unsigned long int ShaftCountRight = 0,shaftright=0;
+volatile unsigned long int ShaftCountLeft = 0;
+volatile unsigned long int ShaftCountRight = 0;
 volatile unsigned int Degrees,sharp,value;
 volatile unsigned long int pulse = 0;
 volatile unsigned long int  red;
@@ -110,11 +61,10 @@ volatile unsigned int sharp_left=0,sharp_right=0,sharp_front=0,sharp_left_diff,s
 int left_line=0,center_line=0,right_line=0;
 int line_conf=0;
 int ShortLeft=0,ShortFront=0,ShortRight=0;	//proximity sensors analog values for distance ranges 0 to 10cms ONLY
-
+int shaft=0;		//Every time we use follow_line(0) shaft is an approx shaft count after which line ends
+int garbage_rank=0;	//the rank of present garbage in dumping section
 char color;
 int count;
-int KLp,KLi=0,KLd=0,KWp=20,KWi=10,KWd=10; //kLp is proportionality constant for auto line follower and kwp for wall following
-//int distance;
 float BATT_Voltage;
 int pref[5];								//the type of room is saved sequentially 1->vip	0->regular	(-1)->DND room
 char orders[5];							//the orders of the rooms 1234 in sequence 2nd position has order room1's order
@@ -225,27 +175,6 @@ unsigned int side_Sharp_GP2D12_estimation(unsigned char adc_reading) {
 	distanceInt=800;
 	return distanceInt;
 }
-/*unsigned int Left_Sharp_GP2D12_estimation(unsigned char adc_reading) {	int sharp_error;
-float distance;
-unsigned int distanceInt;
-distance = (int)(10.00*(2799.6*(1.00/(pow(adc_reading,1.1546)))));
-if (distance<=140)
-sharp_error = 15;
-else if (distance<=250)
-sharp_error = 20;
-else if (distance<=360)
-sharp_error = 35;
-else if (distance<=525)
-sharp_error = 45;
-else if (distance<=800)
-sharp_error = 50;
-else
-sharp_error=0;
-distanceInt = (int)distance - sharp_error;
-if(distanceInt>800)
-distanceInt=800;
-return distanceInt;
-}*/
 void buzzer_pin_config (void){
 	DDRC = DDRC | 0x08;			//Setting PORTC 3 as output
 	PORTC = PORTC & 0xF7;		//Setting PORTC 3 logic low to turnoff buzzer
@@ -303,11 +232,9 @@ void right_position_encoder_interrupt_init (void) {
 }
 ISR(INT5_vect) {
 	ShaftCountRight++;
-	shaftright++;
 }
 ISR(INT4_vect){
 	ShaftCountLeft++;
-	shaftleft++;
 } 
 void motion_set (unsigned char Direction){
 	unsigned char PortARestore = 0;
@@ -367,6 +294,8 @@ void timer5_init() {
 void velocity (unsigned char left_motor, unsigned char right_motor) {
 	OCR5AL = (unsigned char)left_motor;
 	OCR5BL = (unsigned char)right_motor;
+	//lcd_print(2,1,left_motor,3);
+	//lcd_print(2, 5, right_motor, 3);
 }
 void blink_red(){
 	 PORTL = PORTL & 0x7F;
@@ -412,6 +341,10 @@ void servo_1_free (void) {
 void servo_2_free (void) {
  OCR1BH = 0x03;
  OCR1BL = 0xFF; //Servo 2 off
+}
+void servo_3_free (void) {
+	OCR1CH = 0x03;
+	OCR1CL = 0xFF; //Servo 3 off
 }
 void lcd_cursor_char_print(char row,char column,char letter){       
 	lcd_cursor (row,column);
@@ -561,7 +494,7 @@ char color_detect() {
 			color_detect();
 		}
 	}
-	
+	ResetColorSensor();
 	return color;
  }
 char judge_order(char room1,char room2){
@@ -678,80 +611,6 @@ void print_sharp_sensor(){
 	 lcd_print(2,9,value,3);
 	 //lcd_print(1,13,sharp,3);
 	 
- }
-void auto_line_follow(int required_line_conf){
-	 int I=0,correction=0,L_speed=0,R_speed=0,error=0,prev_error=0,speed=0;
-	 
-	 
-	 //lcd_print(2,1,KLp,3);
-	 print_line_sensor();
-	 while (1)
-	 {
-		 
-	 //print_line_sensor();
-	 
-	 if (line_conf == 111)
-	 _delay_ms(10);
-	 //stop();
-	 
-	 else if (line_conf == 101)
-	 {
-		forward();
-		velocity(turn_speed,turn_speed);
-	 }
-	 else if (line_conf == 0)
-	 {
-		 forward();
-		 if (error>0)
-		 velocity(turn_speed+30,0);
-		 else if (error<0)
-		 velocity(0,turn_speed+30);
-		 }
-	 
-	 else 
-	 {
-		 if (line_conf == 100)
-		 {
-			error = -2;
-			speed = max_speed;
-		 }
-		 else if(line_conf == 110)
-		 {
-			error = -1;
-			speed = turn_speed - 40;
-		 }
-		 else if(line_conf == 10)
-		 {
-			error = 0;
-			speed = max_speed;
-		 }
-		 else if(line_conf == 11)
-		 {
-			error = 1;
-			speed = max_speed -40;
-		 }
-		 else if(line_conf == 1)
-		 {
-			error = 2;
-			speed = turn_speed;
-		 }
-		 
-		 I = I + error;
-		 correction = KLp*error + KLi*I + KLd*(prev_error - error);
-		 L_speed = speed + correction;
-		 R_speed = speed - correction;
-		 prev_error = error;
-		 forward();
-		 velocity(L_speed,R_speed);
-	 }
-	 //_delay_ms(100);
-	 print_line_sensor();
-	 if (line_conf==required_line_conf)
-	 {
-		stop();
-		break;
-	 }
-	 }	 
  }
 void take_order() {		
 	//we have add a feature of recheck if by mistake it is detecting more than one vip rooms
@@ -929,282 +788,367 @@ void sort_orders(){
 	 }
 	 
  }
-void follow_right_wall(){
-		 
-			//int error;
-		 	//value = ADC_Conversion(13);
-	     	//sharp=side_Sharp_GP2D12_estimation(value);
-	 	 	//sharp_right_diff = sharp_right - sharp;
-			//sharp_right=sharp;
-			//lcd_print(1,14,sharp,3);
-			
-			//_delay_ms(100);
-			     
-		 if(value>10)
-		 {	
-			 if (value<45)
-				 velocity(90,80);
-			 else if(value>55)
-				 velocity(80,90);
-			 else
-				velocity(80,80);
-			
-			// _delay_ms(100);
-			//velocity(L_speed,R_speed);
-		 _delay_ms(200);
-		 }
-		 else
-		 	stop();
-		 
-}
-void follow_left_wall(int required_distance){
-		 int I,correction,L_speed,R_speed,error,prev_error,speed=0,k=2; //k is speed proportionality constant
-		 
-		 	value = ADC_Conversion(9);
-	     	sharp=Sharp_GP2D12_estimation(value);
-	 	 	sharp_left_diff = sharp_left - sharp;
-			 sharp_left=sharp;
-		 //lcd_print(1,6,sharp,3);     
-		 if(sharp_left!=800)
-		 {
-		 	 error = sharp_left - required_distance;
-			 //P = error;
-			 //I = I + error;
-			 //D = prev_error - error;
-			 correction = KWp*error + KWi*(I + error)+ KWd*(prev_error - error);
-			 L_speed = k*max_speed - correction;
-			 R_speed = k*max_speed + correction;
-			 prev_error = error;
-			 forward();
-			 velocity(L_speed,R_speed);
-		 }
-		 else
-		 {
-		 	stop();
-		 }
-		 
-}
-void pickup_service_dumping_section(char current_service){		
-	int cross,tempv=0;
+void pickup_service_dumping_section(char current_service){
+	int cross,tempv=0,ret=1;
+	
 	if (current_service=='R')
-	cross=2;
+		cross=3;
 	else if (current_service=='G')
-	cross=1;
+		cross=1;
 	else if	(current_service=='B')
-	cross=3;
-	while(tempv==cross)
+		{
+			cross=4;
+			ret=2;
+		}
+	while(1)
 	{
-	auto_line_follow(111);
-	print_sharp_sensor();
-	if(sharp_left<600)			//to rule out the possibility line_conf becoming 111 at service since we dont have to consider it as a cross
-	tempv++;
+		follow_line(111);
+		//print_sharp_sensor();
+		tempv++;
+		if(tempv>=cross) 
+		break;
+		velocity(150,150);
+		forward();
+		_delay_ms(500);
+		stop();
+		
 	}
 	stop();
+	_delay_ms(1000);
+	
+	//move certain distance forward###################
+	velocity(100,100);
+	forward_mm(62);
+	stop();
+	//_delay_ms(1000);
+	
+	//turn_on_line('r');
+	
+	//determine whether the service is on left or right
+	char turn;
+	if((int)ADC_Conversion(13)-(int)ADC_Conversion(9)>30) 
+		turn='r';
+	else 
+		turn='l';
+	
+	//turn accordingly
+	turn_on_line(turn);
+	//clip_close();
+	//use servo to pickup###################
+	_delay_ms(2000);
+	
+	//go to service line
+	if (current_service=='G'){
+		if (turn=='r')
+			turn_on_line('l');
+		else 
+			turn_on_line('r');
+	}
+	else 
+		turn_on_line(turn);
+	
+	tempv=0;
+	while(1)
+	{
+		follow_line(111);
+		//print_sharp_sensor();
+		tempv++;
+		if(tempv>=ret) 
+			break;
+		velocity(150,150);
+		forward();
+		_delay_ms(500);
+		stop();
+		
+	}
+	
+	velocity(100,100);
+	forward_mm(70);
+	if(current_service=='G') 
+		turn_on_line('l');
+	else 
+		turn_on_line('r');
 	return;
 }
-void pickup_service_Shome(char current_service){			
+void pickup_service_Shome(char current_service)
+{
 	//the centre point of the two wheels is exactly on service home
-	int cross,tempv=0;
+	char turn;
+	velocity(100,100);
+	forward_mm(70);
 	if(current_service=='G')
 	{
-		while(line_conf!=010)
-		{
-			right();
-			velocity(turn_speed,turn_speed);
-		}
-		stop();
+		turn_on_line('r');
+		follow_line(111);
+		velocity(150,150);
+		forward_mm(70);
+		if((int)ADC_Conversion(13)-(int)ADC_Conversion(9)>30) 
+			turn='r';
+		else 
+			turn='l';
+		turn_on_line(turn);
+		_delay_ms(2000);//servo operation
+		turn_on_line(turn);
+		follow_line(111);
+		velocity(150,150);
+		forward_mm(70);
+		turn_on_line('l');
 	}
 	else
 	{
-		print_line_sensor();
-		while(line_conf!=010)
+		turn_on_line('l');
+		follow_line(111);
+		if(current_service=='B')
 		{
-			print_line_sensor();
-			left();
-			velocity(turn_speed,turn_speed);
+			velocity(150,150);
+			forward();
+			_delay_ms(500);
+			follow_line(111);
 		}
-		stop();
-		if (current_service=='R')
-			cross=1;
-		else if	(current_service=='B')
-			cross=2;
-		while(tempv==cross)
+		
+		velocity(150,150);
+		forward_mm(70);
+		if((int)ADC_Conversion(13)-(int)ADC_Conversion(9)>30) 
+			turn='r';
+		else 
+			turn='l';
+		turn_on_line(turn);
+		_delay_ms(2000);//servo operation
+		turn_on_line(turn);
+		follow_line(111);
+		if(current_service=='B')
 		{
-			auto_line_follow(111);
-			tempv++;
+			velocity(150,150);
+			forward();
+			_delay_ms(500);
+			follow_line(111);
 		}
-			stop();
+		velocity(150,150);
+		forward_mm(70);
+		turn_on_line('r');
+		
 	}
 }
-void dump_garbage(current_room){		
+void dump_garbage(current_room){
+	char turn='r';
+	int garbage=1;		
 	//dumping garbage will always initiate from cross inside the room i.e. room home
-	if(current_room!=4)
+	if(ADC_Conversion(9)-ADC_Conversion(13)>20)
+			turn='r';	//garbage is on left side
+	else if(ADC_Conversion(13)-ADC_Conversion(9)>20)
+			turn='l';	//garbage is on right
+	else 
+		{turn='r'; garbage=0;}
+	if (garbage==1)
+		garbage_rank++;
+	velocity(100,100);
+	forward_mm(25);
+	//velocity(100,100);
+	turn_on_line(turn);
+	forward_mm(40);
+	//clip_open();
+	_delay_ms(1000);
+	back_mm(40);	
+	if (garbage!=0)
+		{
+			if(turn=='r')
+				turn='l';
+			else
+				turn='r';
+			turn_on_line(turn);
+			forward_mm(40);
+			//clip_close();
+			_delay_ms(1000);
+			back_mm(40);
+			turn_on_line(turn);
+		}
+	else
+		turn_on_line(turn);
+	shaft=56;
+	follow_line(0);
+	velocity(150,150);
+	forward_mm(277);
+	if (current_room!=4)
 	{
-		while(sharp_front>200)
-		{
-			forward();
-			velocity(max_speed,max_speed);
-			print_sharp_sensor();
-		}
-		stop();
 		right_degrees(90);
-		print_sharp_sensor();
-		while(abs(sharp_left_diff)<300)
+		forward_mm(300);
+		find_line();
+		//velocity(100,100);
+		follow_line(111);
+		//velocity(100,100);
+		forward_mm(75);
+		if(current_room!=2)
 		{
-			follow_left_wall(120);
-			print_sharp_sensor();
+			if(current_room==1)
+				turn_on_line('r');
+			else
+				turn_on_line('l');
 		}
-		stop();
-		if(current_room==2)
-		{	
-			print_sharp_sensor();
-			while(sharp_right>400)
-			{
-				forward();
-				velocity(turn_speed,turn_speed);
-				print_sharp_sensor();
-			}
-			stop();
-		}
-		else
-		{
-			print_line_sensor();
-			while(line_conf!=111)
-			{
-				forward();
-				velocity(turn_speed,turn_speed);
-				print_line_sensor();
-			}
-			forward_mm(line_sensor_distance);
-			stop();
-			print_line_sensor();
-			while(line_conf!=010)
-			{	
-				if (current_room==1)
-				right();
-				else
-				left();
-				velocity(turn_speed/2,turn_speed/2);
-				print_line_sensor();
-			}
-			stop();
-			print_sharp_sensor();
-			while(sharp_right>400)
-			{
-				forward();
-				velocity(turn_speed,turn_speed);
-			}
-			stop();
-		}
-		print_sharp_sensor();
-		while(abs(sharp_right_diff)<=250)
-		{
-			follow_right_wall(150);
-			print_sharp_sensor();
-		}
-		stop();
-		print_line_sensor();
-		while(line_conf!=111)
-		{
-			forward();
-			velocity(turn_speed,turn_speed);
-			print_sharp_sensor();
-		}
-		forward_mm(line_sensor_distance);
-		while(line_conf!=010)
-		{
-			right();
-			velocity(turn_speed,turn_speed);
-			print_line_sensor();
-		}
-		stop();
-		print_line_sensor();
-		//ShaftCountRight = 0;
-		//distance
-		while(line_conf!=111 )			//use shaft count for detection of second cross
-		{	
-			print_line_sensor();
-		}
+		shaft=18;
+		follow_line(0);
+		_delay_ms(500);
+		velocity(150,150);
+		forward_mm(650);
 	}
+	else 
+	{
+		left_degrees(90);
+		forward_mm(250);
+	}
+	find_line();
+	follow_line(111);
+	forward_mm(75);
+	if (garbage==1)
+		turn_on_line('r');
+	else
+		return;
+	while (1)
+	{
+		follow_line(111);
+		count++;
+		forward_mm(30);
+		if(count>=2)
+			break;
+	}
+	if (garbage_rank==1)
+	{
+		forward_mm(120);
+		left_degrees(90);
+		//clip_open();
+		_delay_ms(1000);
+		left_degrees(90);
+		forward_mm(150);		
+	}
+	else if (garbage_rank==2)
+	{
+		forward_mm(120);
+		right_degrees(90);
+		//clip_open();
+		_delay_ms(1000);
+		right_degrees(90);
+		forward_mm(150);
+	}
+	else if (garbage_rank==3)
+	{
+		//forward_mm(120);
+		left_degrees(40);
+		//clip_open();
+		_delay_ms(1000);
+		left_degrees(90);
+		turn_on_line('l');
+	}
+	else if (garbage_rank==4)
+	{
+		forward_mm(120);
+		right_degrees(40);
+		//clip_open();
+		_delay_ms(1000);
+		right_degrees(90);
+		turn_on_line('r');
+	}
+	return;
 }
 void enter_room(int room){
-	int flag=0;
-	if(room!=4){
-		forward();
+	if(room!=4)
+	{
 		print_line_sensor();
-		
-		while(line_conf!=111){
-			print_line_sensor();
-			}
-		stop();
-		forward_mm(200);	//to get the wheels centre at the home centre
-		if(room!=2){
-			if(room==1)
-			left();
-			else if(room==3)
-			right();
-		}
-		ShaftCountRight=0;
-		//print_sharp_sensor();
-		while(ShaftCountRight<=90)//will have to exact shaft count to reach at the doorstep the room from home
+		shaft=56;
+		follow_line(0);
+		velocity(150,150);
+		forward_mm(630);
+		find_line();
+		follow_line(111);
+		velocity(150,150);
+		if (room!=2)
 		{
-			print_sharp_sensor();
-			follow_right_wall(125);
-			
+			forward_mm(75);
+			if(room==1)
+				left();
+			else
+				right();
+			velocity(150,150);
+			_delay_ms(400);
+			velocity(100,100);
+			print_line_sensor();
+			while (line_conf!=10)
+				print_line_sensor();
+			stop();
 		}
+		shaft=18;		
+		follow_line(0);
+		forward();
+		velocity(150,150);
+		ShaftCountRight=0;
+		while(ShaftCountRight<=84);
 		stop();
 		left_degrees(90);
 	}		
-	else if(room==4){
-		forward_mm(600);
+	else 
+	{
+		shaft=56;
+		follow_line(0);
+		velocity(150,150);
+		forward_mm(320);
 		right_degrees(90);
 	}
 	forward_mm(145);
+	find_line();
+	follow_line(111);
+	velocity(150,150);
+	stop();
+	forward_mm(55);
+}
+void find_line(){
+	int flag=0;
 	print_line_sensor();
 	if(line_conf==0)
 	{
 		ShaftCountRight=0;
-		left();
-		velocity(90,90);
-		while(ShaftCountRight<15)
+		right();
+		velocity(100,100);
+		while(ShaftCountRight<17)
 		{
 			print_line_sensor();
 			if(line_conf!=0)
 			{
 				stop();
+				return;
 				flag=1;
-				break;
+				//break;
 			}
 		}
 		if (flag==0)
 		{
 			ShaftCountRight=0;
-			right();
-			velocity(90,90);
-			while(ShaftCountRight<30)
+			left();
+			velocity(100,100);
+			while(ShaftCountRight<34)
 			{
 				print_line_sensor();
 				if(line_conf!=0)
 				{
 					stop();
 					flag=1;
+					return;
 					//follow_line(111);
-					break;
+					//break;
 				}
 			}
 		}
 		
-		if(flag==0)
-		{
+		if(flag==0)		//if no line found
+		{				
 			ShaftCountRight=0;
-			left();
+			right();
 			velocity(100,100);
-			while(ShaftCountRight<15);
+			while(ShaftCountRight<17){
+				print_line_sensor();
+			}
 			stop();
-			forward();
-			velocity(100,100);
+			//forward();
+			//velocity(100,100);
 			//print_line_sensor();
-			while(1)
+			/*while(1)
 			{
 				print_line_sensor();
 				if(line_conf==111)
@@ -1212,19 +1156,17 @@ void enter_room(int room){
 					stop();
 					break;
 				}
-			}
+			}*/
 		}
 		
 		if (flag==1)
-		follow_line(111);
+		return;
+		//follow_line(111);
 		
 	}
 	
 	else if(line_conf!=0)
-	follow_line(111);
-	
-	stop();
-	forward_mm(80);
+	return;
 }
 void delivery(char service,int room,char position){
 		//position can be only dumping section or service home 
@@ -1273,13 +1215,15 @@ void calibrate(){
 	}
 	else return;
 }
-void follow_line(int RqrdLineConf){
+void follow_line(int RqrdLineConf)
+{
 	int last_line_conf=0;
+	ShaftCountRight=0,ShaftCountLeft=0;
 	print_line_sensor();
-	//forward();
-	back();
-	while(line_conf!=RqrdLineConf)
-	{
+	forward();
+	//back();
+	while(1)
+	{	
 		if(line_conf==100)
 		velocity(50,150);
 		else if(line_conf==110)
@@ -1300,13 +1244,35 @@ void follow_line(int RqrdLineConf){
 			velocity(80,0);
 			else
 			velocity(100,100);
+			line_conf=last_line_conf;
 		}
 		else
 		velocity(100,100);
 		last_line_conf=line_conf;
 		print_line_sensor();
-		//_delay_ms(50);
+		if (line_conf==RqrdLineConf)
+		{
+			if (RqrdLineConf!=0)
+				break;
+			else if(ShaftCountRight>=shaft | ShaftCountLeft>=shaft)
+				break;
+		}
 	}
+	stop();
+	velocity(100,100);
+	return;
+}
+void turn_on_line(char direction)
+{
+	velocity(100,100);
+	if(direction=='r')
+	right();
+	else
+	left();
+	_delay_ms(1000);
+	while(1)
+	if(ADC_Conversion(2)>32)
+	break;
 	stop();
 	return;
 }
@@ -1318,28 +1284,23 @@ void MOSFET_switch_config (void)
 	DDRG = DDRG | 0x04; //make PORTG 2 pin as output
 	PORTG = PORTG & 0xFB; //set PORTG 2 pin to 0
 }
-
-
 //initialization functions
-void port_init(){
-	 //servo1_pin_config(); //Configure PORTB 5 pin for servo motor 1 operation
-	 //servo2_pin_config(); //Configure PORTB 6 pin for servo motor 2 operation
-	 //servo3_pin_config(); //servo3
-	 motion_pin_config(); //robot motion pins config
-	 left_encoder_pin_config(); 
-	 right_encoder_pin_config(); 
-	 //color_sensor_pin_config();
-	 //GPIO_pin_config();	//GPIO pins config for LEDs to glow 
-	 //buzzer_pin_config(); 
-	 lcd_port_config();		
-	 adc_pin_config();
-	 MOSFET_switch_config(); //control switch for ir and line sensor leds
- }
 void init_devices(){
-	cli(); //Clears the global interrupt
-	port_init();  //Initializes all the ports
-	//timer1_init();   //PWM for servo pins
-	timer5_init();	 //PWM for velocity of bot or DC motors
+	cli();										//Clears the global interrupt
+	//servo1_pin_config();						//Configure PORTB 5 pin for servo motor 1 operation
+	//servo2_pin_config();						//Configure PORTB 6 pin for servo motor 2 operation
+	//servo3_pin_config();						//servo3
+	motion_pin_config();						//robot motion pins config
+	left_encoder_pin_config();
+	right_encoder_pin_config();
+	//color_sensor_pin_config();
+	//GPIO_pin_config();						//GPIO pins config for LEDs to glow
+	//buzzer_pin_config();
+	lcd_port_config();
+	adc_pin_config();
+	MOSFET_switch_config();						//control switch for ir and line sensor leds
+	//timer1_init();							//PWM for servo pins
+	timer5_init();								//PWM for velocity of bot or DC motors
 	//color_sensor_pin_interrupt_init();
 	left_position_encoder_interrupt_init();
 	right_position_encoder_interrupt_init();
@@ -1347,63 +1308,10 @@ void init_devices(){
 	lcd_set_4bit();
 	lcd_init();
 	//color_sensor_scaling();
-	sei();   // Enables the global interrupt
+	sei();										// Enables the global interrupt
 }
-/*int main(void){  		//testing function to move the bot in alleys
-	init_devices();	
-	forward_mm(300);
-	forward();
-	ShaftCountLeft=0;
-	ShaftCountRight=0;
-	while (ADC_Conversion(6)>=100)
-	{
-		value = ADC_Conversion(13);
-		print_sensor(1,1,13);
-		if(value>10)
-		{
-			if (value<43)
-			velocity(110,90);
-			else if (value<46)
-			velocity(100,90);
-			else if(value>53)
-			velocity(90,110);
-			else if (value>51)
-			velocity(90,100);
-			else
-			velocity(100,100);
-		}
-		else
-		{
-			stop();
-			break;
-			
-		}		
-	}
-		forward();
-		if ((int) ShaftCountRight>(int) ShaftCountLeft)
-		{
-			velocity(100,0);
-			while (1)
-				if(ShaftCountLeft>=ShaftCountRight)
-					break;
-			
-		}
-		else if ((int) ShaftCountRight<(int) ShaftCountLeft)
-		{
-			velocity(0,100);
-			shaftright=0;
-			shaftleft=0;
-			while (1)
-				if(ShaftCountRight>=ShaftCountLeft)
-					break;
-		}
-		lcd_print(2,1,ShaftCountLeft,4);
-		lcd_print(2,7,ShaftCountRight,4);
-		stop();
-	while (1);	
-}*/
-
 int main(){
+	/***************************take order
 	init_devices();
 	forward();
 	//velocity(120,120);
@@ -1414,25 +1322,23 @@ int main(){
 		_delay_ms(400);
 		stop();
 		break;}
-	}	
+	}
 	//color sensing
 	_delay_ms(1000);
 	forward();
 	while(1)	{
-		
 		if(ADC_Conversion(6)<60)
 		break;
 	}
 	stop();
-	//check right wall distance. if too less then turn the bot right and according to the distace move it towards the indicator.
+	//check right wall distance. if too less then turn the bot right and according to the distance move it towards the indicator.
 	//color sensing
 	_delay_ms(2000);
-	
 	back();
 	while(1){
 		print_line_sensor();
 		if(line_conf==111)
-		break;	
+		break;
 	}
 	stop();
 	forward();
@@ -1452,7 +1358,6 @@ int main(){
 			stop();
 			break;
 		}
-		
 	}
 	_delay_ms(2000);
 	print_line_sensor();
@@ -1462,5 +1367,41 @@ int main(){
 	stop();
 	timer5_init();
 	forward();
-	while(1);
+	while(1);*/
+	init_devices();
+	//enter_room(4);
+	print_sharp_sensor();
+	dump_garbage(1);
+	while (1);
 }
+//don't delete any comments
+/*int main()
+{
+	init_devices();
+	PORTG = PORTG | 0x04;		//to turn off sharp sensor234 and white line sensor leds
+	while (1)
+	{
+		PORTH = PORTH | 0x04;		//off sharp 1 and 5
+		PORTH = PORTH | 0x08;		//turn off proximity sensor leds
+		lcd_cursor_char_print(1,1,'O');
+		lcd_cursor_char_print(1,2,'N');
+		lcd_cursor_char_print(1,3,' ');
+		print_sensor(2,7,13);
+		print_sensor(2,1,9);
+		print_sensor(1,4,4);	//left proximity
+		print_sensor(1,8,6);	//front proximity
+		print_sensor(1,12,8);	//right proximity
+		_delay_ms(1000);
+		PORTH = PORTH & 0xFB;		//on sharp 1 and 5
+		PORTH = PORTH & 0xF7;		//turn on proximity sensor leds
+		lcd_cursor_char_print(1,1,'O');
+		lcd_cursor_char_print(1,2,'F');
+		lcd_cursor_char_print(1,3,'F');
+		print_sensor(2,7,13);
+		print_sensor(2,1,9);
+		print_sensor(1,5,4);	
+		print_sensor(1,9,6);
+		print_sensor(1,13,8);
+		_delay_ms(1000);
+	}
+}*/
