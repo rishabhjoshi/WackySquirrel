@@ -66,7 +66,7 @@ int garbage_rank=0;	//the rank of present garbage in dumping section
 char color;
 int count;
 float BATT_Voltage;
-int pref[5];								//the type of room is saved sequentially 1->vip	0->regular	(-1)->DND room
+int pref[5]={-1,-1,-1,-1,-1};							//the type of room is saved sequentially 1->vip	0->regular	(-1)->DND room
 char orders[5];							//the orders of the rooms 1234 in sequence 2nd position has order room1's order
 int sorted_rooms[5]={0,0,0,0,0};		//the final sequence of rooms bot has to provide service
 int current_room=1;
@@ -427,21 +427,26 @@ void ResetColorSensor(){
 }
 //OUR MAIN FOCUS WOULD BE THESE FUNCTIONS
 void clip_close(void) {	
-	for (int i=0;i<200;i++)
-		servo_1(i);
-	
-	
-	//wait();
-	//servo_2(0);
-	//wait();
+	for (int i=0;i<181;i++)
+		{
+			servo_1(i);
+			servo_2(180-i);
+			_delay_ms(10);
+		}
 	_delay_ms(2000);
+	servo_1_free();
+	servo_2_free();
 }
 void clip_open(void) {
-		servo_1(0);
-		//wait();
-		//servo_2(180);
-		//wait();
+		for (int i=0;i<181;i++)
+		{
+			servo_2(i);
+			servo_1(180-i);
+			_delay_ms(10);
+		}
 		_delay_ms(2000);
+		servo_1_free();
+		servo_2_free();
 }
 void buzzer_on (void) {
 	unsigned char port_restore = 0;
@@ -590,7 +595,6 @@ int print_line_sensor(){
 	}
 void print_sharp_sensor(){
  	unsigned int sharp,value;
-	 
 	 value = ADC_Conversion(9);
 	 sharp =side_Sharp_GP2D12_estimation(value);
 	 sharp_left_diff = sharp_left - sharp;
@@ -779,7 +783,7 @@ void sort_orders(){
 	 for(int i=1;i<5;i++)
 	 {
 		 if(pref[i]==1)
-		 	sorted_rooms[1] = i;
+		 	 sorted_rooms[1] = i;
 		 else if (pref[i]==0)
 		 {
 			 sorted_rooms[j]=i;
@@ -929,7 +933,7 @@ void pickup_service_Shome(char current_service)
 		
 	}
 }
-void dump_garbage(current_room){
+void dump_garbage(int room){
 	char turn='r';
 	int garbage=1;		
 	//dumping garbage will always initiate from cross inside the room i.e. room home
@@ -938,7 +942,10 @@ void dump_garbage(current_room){
 	else if(ADC_Conversion(13)-ADC_Conversion(9)>20)
 			turn='l';	//garbage is on right
 	else 
-		{turn='r'; garbage=0;}
+		{
+			turn='r'; 
+			garbage=0;
+		}
 	if (garbage==1)
 		garbage_rank++;
 	velocity(100,100);
@@ -946,7 +953,7 @@ void dump_garbage(current_room){
 	//velocity(100,100);
 	turn_on_line(turn);
 	forward_mm(40);
-	//clip_open();
+	clip_open();
 	_delay_ms(1000);
 	back_mm(40);	
 	if (garbage!=0)
@@ -957,7 +964,7 @@ void dump_garbage(current_room){
 				turn='r';
 			turn_on_line(turn);
 			forward_mm(40);
-			//clip_close();
+			clip_close();
 			_delay_ms(1000);
 			back_mm(40);
 			turn_on_line(turn);
@@ -967,19 +974,21 @@ void dump_garbage(current_room){
 	shaft=56;
 	follow_line(0);
 	velocity(150,150);
+	//timer5_init();
 	forward_mm(277);
-	if (current_room!=4)
+	if (room!=4)
 	{
 		right_degrees(90);
 		forward_mm(300);
 		find_line();
 		//velocity(100,100);
 		follow_line(111);
-		//velocity(100,100);
+		velocity(100,100);
+		//timer5_init();
 		forward_mm(75);
-		if(current_room!=2)
+		if(room!=2)
 		{
-			if(current_room==1)
+			if(room==1)
 				turn_on_line('r');
 			else
 				turn_on_line('l');
@@ -987,7 +996,7 @@ void dump_garbage(current_room){
 		shaft=18;
 		follow_line(0);
 		_delay_ms(500);
-		velocity(150,150);
+		velocity(200,200);
 		forward_mm(650);
 	}
 	else 
@@ -997,6 +1006,7 @@ void dump_garbage(current_room){
 	}
 	find_line();
 	follow_line(111);
+	timer5_init();
 	forward_mm(75);
 	if (garbage==1)
 		turn_on_line('r');
@@ -1014,7 +1024,7 @@ void dump_garbage(current_room){
 	{
 		forward_mm(120);
 		left_degrees(90);
-		//clip_open();
+		clip_open();
 		_delay_ms(1000);
 		left_degrees(90);
 		forward_mm(150);		
@@ -1023,7 +1033,7 @@ void dump_garbage(current_room){
 	{
 		forward_mm(120);
 		right_degrees(90);
-		//clip_open();
+		clip_open();
 		_delay_ms(1000);
 		right_degrees(90);
 		forward_mm(150);
@@ -1032,7 +1042,7 @@ void dump_garbage(current_room){
 	{
 		//forward_mm(120);
 		left_degrees(40);
-		//clip_open();
+		clip_open();
 		_delay_ms(1000);
 		left_degrees(90);
 		turn_on_line('l');
@@ -1041,7 +1051,7 @@ void dump_garbage(current_room){
 	{
 		forward_mm(120);
 		right_degrees(40);
-		//clip_open();
+		clip_open();
 		_delay_ms(1000);
 		right_degrees(90);
 		turn_on_line('r');
@@ -1099,70 +1109,42 @@ void enter_room(int room){
 	forward_mm(55);
 }
 void find_line(){
-	int flag=0;
 	print_line_sensor();
 	if(line_conf==0)
 	{
 		ShaftCountRight=0;
-		right();
-		velocity(100,100);
-		while(ShaftCountRight<17)
+		left();
+		velocity(120,120);
+		while(ShaftCountRight<15)
 		{
 			print_line_sensor();
 			if(line_conf!=0)
 			{
 				stop();
 				return;
-				flag=1;
-				//break;
 			}
 		}
-		if (flag==0)
-		{
 			ShaftCountRight=0;
-			left();
-			velocity(100,100);
-			while(ShaftCountRight<34)
+			right();
+			velocity(120,120);
+			while(ShaftCountRight<29)
 			{
 				print_line_sensor();
 				if(line_conf!=0)
 				{
 					stop();
-					flag=1;
 					return;
-					//follow_line(111);
-					//break;
 				}
 			}
-		}
 		
-		if(flag==0)		//if no line found
-		{				
+		//if no line found			
 			ShaftCountRight=0;
-			right();
-			velocity(100,100);
-			while(ShaftCountRight<17){
+			left();
+			velocity(120,120);
+			while(ShaftCountRight<15)
 				print_line_sensor();
-			}
 			stop();
-			//forward();
-			//velocity(100,100);
-			//print_line_sensor();
-			/*while(1)
-			{
-				print_line_sensor();
-				if(line_conf==111)
-				{
-					stop();
-					break;
-				}
-			}*/
-		}
-		
-		if (flag==1)
-		return;
-		//follow_line(111);
-		
+			return;
 	}
 	
 	else if(line_conf!=0)
@@ -1185,11 +1167,8 @@ void calibrate(){
 
 	if (right1>left1)
 	{
-		int diff=(right1-left1);
 		forward();
 		velocity(100,0);
-		ShaftCountRight=0;
-		ShaftCountLeft=0;
 		while (1)
 		{
 			if(ShaftCountLeft >= ShaftCountRight)
@@ -1213,6 +1192,7 @@ void calibrate(){
 			}
 		}
 	}
+
 	else return;
 }
 void follow_line(int RqrdLineConf)
@@ -1252,7 +1232,7 @@ void follow_line(int RqrdLineConf)
 		print_line_sensor();
 		if (line_conf==RqrdLineConf)
 		{
-			if (RqrdLineConf!=0)
+			if (RqrdLineConf==111)
 				break;
 			else if(ShaftCountRight>=shaft | ShaftCountLeft>=shaft)
 				break;
@@ -1266,13 +1246,13 @@ void turn_on_line(char direction)
 {
 	velocity(100,100);
 	if(direction=='r')
-	right();
+		right();
 	else
-	left();
+		left();
 	_delay_ms(1000);
 	while(1)
-	if(ADC_Conversion(2)>32)
-	break;
+		if(ADC_Conversion(2)>32)
+		break;
 	stop();
 	return;
 }
@@ -1286,20 +1266,20 @@ void MOSFET_switch_config (void)
 }
 //initialization functions
 void init_devices(){
-	cli();										//Clears the global interrupt
-	//servo1_pin_config();						//Configure PORTB 5 pin for servo motor 1 operation
-	//servo2_pin_config();						//Configure PORTB 6 pin for servo motor 2 operation
-	//servo3_pin_config();						//servo3
-	motion_pin_config();						//robot motion pins config
+	cli();											//Clears the global interrupt
+	servo1_pin_config();							//Configure PORTB 5 pin for servo motor 1 operation
+	servo2_pin_config();							//Configure PORTB 6 pin for servo motor 2 operation
+	//servo3_pin_config();							//servo3
+	motion_pin_config();							//robot motion pins config
 	left_encoder_pin_config();
 	right_encoder_pin_config();
 	//color_sensor_pin_config();
-	//GPIO_pin_config();						//GPIO pins config for LEDs to glow
+	//GPIO_pin_config();							//GPIO pins config for LEDs to glow
 	//buzzer_pin_config();
 	lcd_port_config();
 	adc_pin_config();
-	MOSFET_switch_config();						//control switch for ir and line sensor leds
-	//timer1_init();							//PWM for servo pins
+	//MOSFET_switch_config();						//control switch for ir and line sensor leds
+	timer1_init();									//PWM for servo pins
 	timer5_init();								//PWM for velocity of bot or DC motors
 	//color_sensor_pin_interrupt_init();
 	left_position_encoder_interrupt_init();
@@ -1308,73 +1288,9 @@ void init_devices(){
 	lcd_set_4bit();
 	lcd_init();
 	//color_sensor_scaling();
+	
 	sei();										// Enables the global interrupt
 }
-int main(){
-	/***************************take order
-	init_devices();
-	forward();
-	//velocity(120,120);
-	while(1){
-	if(ADC_Conversion(9)>40)
-		{stop();
-		forward();
-		_delay_ms(400);
-		stop();
-		break;}
-	}
-	//color sensing
-	_delay_ms(1000);
-	forward();
-	while(1)	{
-		if(ADC_Conversion(6)<60)
-		break;
-	}
-	stop();
-	//check right wall distance. if too less then turn the bot right and according to the distance move it towards the indicator.
-	//color sensing
-	_delay_ms(2000);
-	back();
-	while(1){
-		print_line_sensor();
-		if(line_conf==111)
-		break;
-	}
-	stop();
-	forward();
-	_delay_ms(560);
-	stop();
-	_delay_ms(2000);
-	//right_degrees(30);
-	//_delay_ms(1000);
-	right();
-	_delay_ms(100);
-	velocity(90,90);
-	while(1)
-	{
-		print_line_sensor();
-		if (line_conf==10)
-		{
-			stop();
-			break;
-		}
-	}
-	_delay_ms(2000);
-	print_line_sensor();
-	back();
-		//back();
-		follow_line(111);
-	stop();
-	timer5_init();
-	forward();
-	while(1);*/
-	init_devices();
-	//enter_room(4);
-	print_sharp_sensor();
-	dump_garbage(1);
-	while (1);
-}
-//don't delete any comments
 /*int main()
 {
 	init_devices();
@@ -1405,3 +1321,103 @@ int main(){
 		_delay_ms(1000);
 	}
 }*/
+take_order1(){
+	char IA1,IA2;
+	shaft=15;
+	follow_line(0);
+	//lcd_print(2,1,ShaftCountLeft,4);
+	//lcd_print(2,8,ShaftCountRight,4);
+	forward();
+	timer5_init();
+	while(1)
+	{
+		if(ADC_Conversion(9)>40)
+		{
+			print_sensor(1,5,9);
+			forward();
+			_delay_ms(500);
+			stop();
+			break;
+		}
+	}
+	//IA1=color_detect();
+	_delay_ms(2000);
+	forward();
+	while (1)
+	{
+		if ((int) ADC_Conversion(6)<40)
+		{
+			stop();
+			break;
+		}
+		
+	}
+	//calibrate();
+	stop();
+	_delay_ms(2000);
+	//IA2=color_detect();
+	///*****************
+	if (1/*judge_order(IA1,IA2)=='E'*/)
+	{
+		char IA21,IA22;
+		//IA22=color_detect();
+		back_mm(30);
+		_delay_ms(1000);
+		back();
+		while (1)
+		{
+			if (ADC_Conversion(9)<40)
+			{
+				_delay_ms(500);
+				stop();
+				break;
+			}
+		}
+		//IA21=color_detect();
+		//judge_order(IA21,IA22);
+		if (current_room==4)
+			forward_mm(620);
+	}
+	//***************/
+	timer5_init();
+	if (current_room!=4)
+	{
+			back();
+			while (1)
+			{
+				if (print_line_sensor()==111)
+				{
+					stop(); 
+					break;
+				}
+			}
+		forward_mm(70);
+		right();
+		velocity(120,120);
+		_delay_ms(300);
+		turn_on_line('r');
+		back_mm(50);
+		find_line();
+
+	}	
+	else
+	{
+		find_line();
+		follow_line(111);
+		forward_mm(72);
+	}
+	current_room++;
+	if (current_room!=5)
+	take_order1();
+	return;
+}
+int main()
+{
+	init_devices();
+	clip_open();
+	_delay_ms(5000);
+	clip_close();
+	_delay_ms(2000);
+	dump_garbage(2);
+	while (1);
+}
