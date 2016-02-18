@@ -43,7 +43,7 @@ const int line_sensor_distance=200;
 const int threshold_line_sensor_value=70;
 const int Csensor_pos=50;   //distance of color sensor from the left sharp sensor
 const int max_speed=150,turn_speed=130;
-const int threshold=700;	//threshold value to decide the color
+const int threshold=550;	//threshold value to decide the color
 
 //volatile variables
 volatile unsigned long int ShaftCountLeft = 0;
@@ -70,8 +70,8 @@ int pref[5]={-1,-1,-1,-1,-1};							//the type of room is saved sequentially 1->
 char orders[5];							//the orders of the rooms 1234 in sequence 2nd position has order room1's order
 int sorted_rooms[5]={0,0,0,0,0};		//the final sequence of rooms bot has to provide service
 int current_room=1;
-
-
+char position='S';
+int count1=1;
 //SENSOR CONFIGURATION AND PREDEFINED FUNCTIONS
 void lcd_port_config (void){
 	DDRC = DDRC | 0xF7; 
@@ -461,7 +461,8 @@ void buzzer_off (void){
 	PORTC = port_restore;
 }
 char color_detect() {
-	AlignColorSensor();
+	//AlignColorSensor();
+	lcd_wr_command(0x01);
 	red_read();
 	lcd_print(1,1,red,5);
 	_delay_ms(1000);
@@ -481,17 +482,17 @@ char color_detect() {
 		if (red>green && red >blue)
 		{
 			color = 'R';
-			blink_red();
+			//blink_red();
 		}
 		else if (green>red && green > blue)
 		{
 			color = 'G';
-			blink_green();
+			//blink_green();
 		}
 		else if (blue>red && blue>green)
 		{
 			color = 'B';
-			blink_blue();
+			//blink_blue();
 		}
 		else
 		{
@@ -499,8 +500,12 @@ char color_detect() {
 			color_detect();
 		}
 	}
-	ResetColorSensor();
+	lcd_cursor_char_print(2,10,color);
+	_delay_ms(2000);
+	//ResetColorSensor();
+	lcd_wr_command(0x01); //Clear the LCD
 	return color;
+	
  }
 char judge_order(char room1,char room2){
 	 char order1;
@@ -533,7 +538,7 @@ char judge_order(char room1,char room2){
 			 pref[current_room] = 0;
 		 }
 	 }
-	 
+	 lcd_cursor_char_print(1,1,order1);
 	 return order1;
  }
 void red_read(void) {
@@ -616,168 +621,6 @@ void print_sharp_sensor(){
 	 //lcd_print(1,13,sharp,3);
 	 
  }
-void take_order() {		
-	//we have add a feature of recheck if by mistake it is detecting more than one vip rooms
-	
-	char room1,room2;
-	print_line_sensor();			//final function for turning left or right till line sensor detects the line
-	left();
-	_delay_ms(200);
-	velocity(90,90);
-	ShaftCountLeft=0;
-	while (1)
-	{
-		print_line_sensor();
-		if (line_conf == 10)
-		{
-			stop();
-			break;
-		}
-	}							
-	red=ShaftCountLeft+5;
-	forward_mm(80);
-	_delay_ms(100);
-	ShaftCountLeft=0;
-	right();
-	velocity(turn_speed,turn_speed);
-	while (1)
-	{
-		if (ShaftCountLeft>=red)
-		{
-			stop();
-			break;
-		}
-		
-	}
-	//buzzer_on();
-	//_delay_ms(100);
-	//buzzer_off();
-	//_delay_ms(10000);
-	//right_degrees(90);
-	
-	while(current_room<4)
-	{
-		//print_sharp_sensor();
-		_delay_ms(100);
-		forward_mm(200);
-		//while(sharp_left > 100)
-		//print_sharp_sensor();
-		stop();
-		//_delay_ms(20000);
-		//room1=color_detect();
-		//print_sharp_sensor();
-		/*while(sharp_front >= 200)
-			follow_right_wall(200);
-		stop();*/
-		//we have to check if the bot is straight and close enough to second indicator
-		
-		_delay_ms(3000);
-		
-		ShaftCountRight = 0;
-		forward();
-		while(1)
-		{	
-			print_sharp_sensor();
-			if(ShaftCountRight >= 94)
-			{
-				stop();
-				break;
-			}				
-		}
-		stop();	
-		_delay_ms(2000);
-		//room2=color_detect();
-		//right_degrees(180);
-		//_delay_ms(1000);
-		back();
-		velocity(115,120);
-		//check velovity
-		//ShaftCountRight=0;
-		/*while(1)
-		{
-			//print_sharp_sensor();
-			if(ShaftCountRight >= 94)
-			{
-				stop();
-				break;
-			}
-		}
-		_delay_ms(100);*/
-		//stop();
-		//back();
-		//velocity(110,120);
-		print_line_sensor();
-		while (1)
-		{
-			print_line_sensor();
-			if (line_conf==111)
-			{
-				stop();
-				break;
-			}
-			
-		}
-		forward_mm(170);
-		right_degrees(90);
-		buzzer_on();
-		_delay_ms(500);		//testing
-		buzzer_off();
-		_delay_ms(20000);
-		while (judge_order(room1,room2)=='E')		//detecting the indicators again if we cant judge the final order from available color pair like red and green 
-		{
-			 back_mm(425);			//going back in front of the previous indicator
-		 
-			 room1=color_detect();
-		 
-			 while(sharp_front >= 200)
-			 {
-				 print_sharp_sensor();
-				 forward();
-				 velocity(turn_speed,turn_speed);
-			 }
-			 stop();
-		 
-			 _delay_ms(300);
-			 forward_mm(60);
-			 room2=color_detect();
-		}
-	
-		orders[current_room]=judge_order(room1,room2);
-	
-		if (current_room<4)
-		{
-	
-			right_degrees(180);
-			print_line_sensor();
-			while(line_conf != 111)
-			{
-				forward();
-				velocity(max_speed,max_speed);
-				print_line_sensor();
-			}
-			stop();
-	
-			_delay_ms(300);
-			left_degrees(90);
-			stop();
-		}  
-		else if (current_room==4)
-		{	
-			forward();
-			velocity(turn_speed,turn_speed);
-			print_line_sensor();
-			while(line_conf != 111)
-			{
-				print_line_sensor();
-			}
-			stop();
-			_delay_ms(200);
-			forward_mm(line_sensor_distance);
-			stop();
-		}
-		current_room++;
-		}
-}
 void sort_orders(){ 
 	 int j=2;
 	 for(int i=1;i<5;i++)
@@ -947,7 +790,12 @@ void dump_garbage(int room){
 			garbage=0;
 		}
 	if (garbage==1)
+	{
 		garbage_rank++;
+		position='D';
+	}
+	else
+	position='S';
 	velocity(100,100);
 	forward_mm(25);
 	//velocity(100,100);
@@ -976,6 +824,18 @@ void dump_garbage(int room){
 	velocity(150,150);
 	//timer5_init();
 	forward_mm(277);
+	if(sorted_rooms[count1+1]==0)
+	{
+		right_degrees(90);
+		forward_mm(300);
+		find_line();
+		//velocity(100,100);
+		follow_line(111);
+		velocity(100,100);
+		//timer5_init();
+		forward_mm(75);
+		return;
+	}
 	if (room!=4)
 	{
 		right_degrees(90);
@@ -986,6 +846,7 @@ void dump_garbage(int room){
 		velocity(100,100);
 		//timer5_init();
 		forward_mm(75);
+		
 		if(room!=2)
 		{
 			if(room==1)
@@ -1144,17 +1005,25 @@ void find_line(){
 			while(ShaftCountRight<15)
 				print_line_sensor();
 			stop();
+			forward();
+			while (1)
+			{
+				print_line_sensor();
+				if (line_conf!=0)
+				return;
+			}
+			
 			return;
 	}
 	
 	else if(line_conf!=0)
 	return;
 }
-void delivery(char service,int room,char position){
+void delivery(char service,int room,char currentPosition){
 		//position can be only dumping section or service home 
 		//for service home position=s
 		//for dumping area position=D
-		if(position=='D')
+		if(currentPosition=='D')
 			pickup_service_dumping_section(service);		//bot has picked up the service and came to service and facing to the center
 		else 
 			pickup_service_Shome(service);		
@@ -1269,11 +1138,11 @@ void init_devices(){
 	cli();											//Clears the global interrupt
 	servo1_pin_config();							//Configure PORTB 5 pin for servo motor 1 operation
 	servo2_pin_config();							//Configure PORTB 6 pin for servo motor 2 operation
-	//servo3_pin_config();							//servo3
+	servo3_pin_config();							//servo3
 	motion_pin_config();							//robot motion pins config
 	left_encoder_pin_config();
 	right_encoder_pin_config();
-	//color_sensor_pin_config();
+	color_sensor_pin_config();
 	//GPIO_pin_config();							//GPIO pins config for LEDs to glow
 	//buzzer_pin_config();
 	lcd_port_config();
@@ -1281,14 +1150,14 @@ void init_devices(){
 	//MOSFET_switch_config();						//control switch for ir and line sensor leds
 	timer1_init();									//PWM for servo pins
 	timer5_init();								//PWM for velocity of bot or DC motors
-	//color_sensor_pin_interrupt_init();
+	color_sensor_pin_interrupt_init();
 	left_position_encoder_interrupt_init();
 	right_position_encoder_interrupt_init();
 	adc_init();
 	lcd_set_4bit();
 	lcd_init();
-	//color_sensor_scaling();
-	
+	color_sensor_scaling();
+	clip_open();
 	sei();										// Enables the global interrupt
 }
 /*int main()
@@ -1321,7 +1190,7 @@ void init_devices(){
 		_delay_ms(1000);
 	}
 }*/
-take_order1(){
+void take_order1(){
 	char IA1,IA2;
 	shaft=15;
 	follow_line(0);
@@ -1329,6 +1198,7 @@ take_order1(){
 	//lcd_print(2,8,ShaftCountRight,4);
 	forward();
 	timer5_init();
+	lcd_print(1,2,5,1);
 	while(1)
 	{
 		if(ADC_Conversion(9)>40)
@@ -1340,41 +1210,40 @@ take_order1(){
 			break;
 		}
 	}
-	//IA1=color_detect();
+	IA1=color_detect();
 	_delay_ms(2000);
 	forward();
 	while (1)
 	{
-		if ((int) ADC_Conversion(6)<40)
+		if ((int) ADC_Conversion(6)<35)
 		{
 			stop();
 			break;
 		}
-		
 	}
 	//calibrate();
 	stop();
 	_delay_ms(2000);
-	//IA2=color_detect();
+	IA2=color_detect();
 	///*****************
-	if (1/*judge_order(IA1,IA2)=='E'*/)
+	if (judge_order(IA1,IA2)=='E')
 	{
-		char IA21,IA22;
-		//IA22=color_detect();
+		
+		IA2=color_detect();
 		back_mm(30);
 		_delay_ms(1000);
 		back();
 		while (1)
 		{
-			if (ADC_Conversion(9)<40)
+			if (ADC_Conversion(9)>40)
 			{
 				_delay_ms(500);
 				stop();
 				break;
 			}
 		}
-		//IA21=color_detect();
-		//judge_order(IA21,IA22);
+		IA1=color_detect();
+		judge_order(IA1,IA2);
 		if (current_room==4)
 			forward_mm(620);
 	}
@@ -1387,7 +1256,7 @@ take_order1(){
 			{
 				if (print_line_sensor()==111)
 				{
-					stop(); 
+					stop();
 					break;
 				}
 			}
@@ -1398,8 +1267,7 @@ take_order1(){
 		turn_on_line('r');
 		back_mm(50);
 		find_line();
-
-	}	
+	}
 	else
 	{
 		find_line();
@@ -1411,13 +1279,37 @@ take_order1(){
 	take_order1();
 	return;
 }
+void return_home()
+{
+	if(position=='D')
+	{
+		follow_line(111);
+		forward();
+		_delay_ms(1000);
+		follow_line(111);
+		turn_on_line('l');
+	}
+	shaft=56;
+	follow_line(0);
+	velocity(150,150);
+	forward_mm(630);
+	find_line();
+	follow_line(111);
+	stop();
+	buzzer_on();
+	_delay_ms(5000);
+	buzzer_off();
+}
 int main()
 {
 	init_devices();
-	clip_open();
-	_delay_ms(5000);
-	clip_close();
-	_delay_ms(2000);
-	dump_garbage(2);
+	take_order1();
+	sort_orders();
+	while (sorted_rooms[count1]!=0)
+	{
+		delivery(orders[sorted_rooms[count1]],sorted_rooms[count1],position);
+		count1++;
+	}
+	return_home();	
 	while (1);
 }
