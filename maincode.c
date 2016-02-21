@@ -182,7 +182,12 @@ void buzzer_pin_config (void){
 void GPIO_pin_config(void) {
 	DDRL = DDRL | 0xC3;   
 	//DDRD = DDRD & 0x0F;  
-	PORTL = PORTL | 0xC3;	 
+	PORTL = PORTL | 0xC3;
+	DDRH= DDRH | 0x30;
+	//PORTH= PORTH | 0x30;	 //turn on color sensor vcc and servo3
+	PORTH= PORTH & 0xCF;	 //turn off color sensor vcc and servo3
+	//PORTH= PORTH | 0x20;	 //turn on servo3 vcc
+	//PORTH= PORTH | 0x10;	 //turn on color sensor vcc
 }
 void color_sensor_pin_config(void) {
 	DDRD  = DDRD | 0xFE; //set PD0 as input for color sensor output
@@ -433,7 +438,7 @@ void clip_close(void) {
 			servo_2(180-i);
 			_delay_ms(10);
 		}
-	_delay_ms(2000);
+	_delay_ms(500);
 	servo_1_free();
 	servo_2_free();
 }
@@ -444,7 +449,7 @@ void clip_open(void) {
 			servo_1(180-i);
 			
 		}
-		_delay_ms(2000);
+		_delay_ms(500);
 		servo_1_free();
 		servo_2_free();
 }
@@ -462,18 +467,18 @@ void buzzer_off (void){
 }
 char color_detect() {
 	//AlignColorSensor();
-	lcd_wr_command(0x01);
+	//lcd_wr_command(0x01);
 	red_read();
-	lcd_print(1,1,red,5);
-	_delay_ms(1000);
-
+	//lcd_print(1,1,red,5);
+	_delay_ms(100);		/////////////////////////////////
+	
 	green_read();
-	lcd_print(1,7,green,5);
-	_delay_ms(1000);
+	//lcd_print(1,7,green,5);
+	_delay_ms(100);		////////////////////////////////
 
 	blue_read();
-	lcd_print(2,1,blue,5);
-	_delay_ms(1000);
+	//lcd_print(2,1,blue,5);
+	_delay_ms(100);		///////////////////////////////
 	
 	if(red<threshold && green<threshold && blue<threshold)
 	color = 'K';
@@ -482,17 +487,17 @@ char color_detect() {
 		if (red>green && red >blue)
 		{
 			color = 'R';
-			//blink_red();
+			blink_red();
 		}
 		else if (green>red && green > blue)
 		{
 			color = 'G';
-			//blink_green();
+			blink_green();
 		}
 		else if (blue>red && blue>green)
 		{
 			color = 'B';
-			//blink_blue();
+			blink_blue();
 		}
 		else
 		{
@@ -500,10 +505,10 @@ char color_detect() {
 			color_detect();
 		}
 	}
-	lcd_cursor_char_print(2,10,color);
-	_delay_ms(2000);
+	//lcd_cursor_char_print(2,10,color);
+	//_delay_ms(2000);
 	//ResetColorSensor();
-	lcd_wr_command(0x01); //Clear the LCD
+	//lcd_wr_command(0x01); //Clear the LCD
 	return color;
 	
  }
@@ -542,9 +547,8 @@ char judge_order(char room1,char room2){
 			 pref[current_room-1] = 0;
 		 }
 	 }
-	 
-	 lcd_cursor_char_print(1,1,order1);
-	 _delay_ms(2000);
+	 lcd_cursor_char_print(2,1,order1);
+	 //_delay_ms(2000);
 	 return order1;
  }
 void red_read(void) {
@@ -610,20 +614,20 @@ void print_sharp_sensor(){
 	 sharp =side_Sharp_GP2D12_estimation(value);
 	 sharp_left_diff = sharp_left - sharp;
 	 sharp_left=sharp;
-	 lcd_print(2,1,value,3);
-	 lcd_print(1,1,sharp,3);
+	 //lcd_print(2,1,value,3);
+	 //lcd_print(1,1,sharp,3);
 	 value = ADC_Conversion(11);
 	 sharp=Sharp_GP2D12_estimation(value);
 	 sharp_front_diff = sharp_front - sharp;
 	 sharp_front=sharp;
-	 lcd_print(1,5,sharp,3);
-	 lcd_print(2,5,value,3);
+	 //lcd_print(1,5,sharp,3);
+	 //lcd_print(2,5,value,3);
 	 value = ADC_Conversion(13);
 	 sharp=side_Sharp_GP2D12_estimation(value);
 	 sharp_right_diff = sharp_right - sharp;
 	 sharp_right=sharp;
-	 lcd_print(1,9,sharp,3);
-	 lcd_print(2,9,value,3);
+	 //lcd_print(1,9,sharp,3);
+	 //lcd_print(2,9,value,3);
 	 //lcd_print(1,13,sharp,3);
 	 
  }
@@ -672,7 +676,7 @@ void pickup_service_dumping_section(char current_service){
 		
 	}
 	stop();
-	_delay_ms(1000);
+	//_delay_ms(1000);
 	
 	//move certain distance forward###################
 	velocity(100,100);
@@ -745,7 +749,7 @@ void pickup_service_Shome(char current_service)
 		else 
 			turn='l';
 		turn_on_line(turn);
-		_delay_ms(500);
+		//_delay_ms(100);
 		clip_close();
 		//_delay_ms(2000);
 		//servo operation
@@ -775,7 +779,7 @@ void pickup_service_Shome(char current_service)
 			turn='l';
 		turn_on_line(turn);
 		clip_close();
-		_delay_ms(200);//servo operation
+		//_delay_ms(200);//servo operation
 		turn_on_line(turn);
 		follow_line(111);
 		if(current_service=='B')
@@ -812,12 +816,12 @@ void dump_garbage(int room){
 	else
 	position='S';
 	velocity(100,100);
-	forward_mm(25);
+	forward_mm(22);//was 25
 	//velocity(100,100);
 	turn_on_line(turn);
 	forward_mm(40);
 	clip_open();
-	_delay_ms(1000);
+	//_delay_ms(1000);
 	back_mm(40);	
 	if (garbage!=0)
 		{
@@ -828,7 +832,7 @@ void dump_garbage(int room){
 			turn_on_line(turn);
 			forward_mm(40);
 			clip_close();
-			_delay_ms(1000);
+			//_delay_ms(1000);
 			back_mm(40);
 			turn_on_line(turn);
 		}
@@ -838,7 +842,7 @@ void dump_garbage(int room){
 	follow_line(0);
 	velocity(150,150);
 	//timer5_init();
-	forward_mm(277);
+	forward_mm(267);
 	if(sorted_rooms[count1+1]==0 && garbage==0)
 	{
 		right_degrees(90);
@@ -849,6 +853,9 @@ void dump_garbage(int room){
 		velocity(100,100);
 		//timer5_init();
 		forward_mm(75);
+		buzzer_on();
+		_delay_ms(5000);
+		buzzer_off();
 		return;
 	}
 	if (room!=4)
@@ -871,7 +878,7 @@ void dump_garbage(int room){
 		}
 		shaft=18;
 		follow_line(0);
-		_delay_ms(500);
+		_delay_ms(200);
 		velocity(200,200);
 		forward_mm(650);
 	}
@@ -882,59 +889,60 @@ void dump_garbage(int room){
 	}
 	find_line();
 	follow_line(111);
-	timer5_init();
 	forward_mm(75);
 	if (garbage==1)
 		turn_on_line('r');
 	else
 		return;
+	ShaftCountLeft=0;
 	while (1)
 	{
 		follow_line(111);
-		count++;
-		forward_mm(30);
-		if(count>=2)
+		if(ShaftCountLeft>=110)
 			break;
 	}
+	blink_red();/////////////////////////////////////////////////////////////////////////////////////////////////////
 	if (garbage_rank==1)
 	{
-		forward_mm(120);
-		left_degrees(90);
+		forward_mm(50);
+		left_degrees(45);
 		clip_open();
-		_delay_ms(1000);
-		left_degrees(90);
-		forward_mm(150);		
+		//_delay_ms(10);
+		left_degrees(135);
+		forward_mm(70);	
 	}
 	else if (garbage_rank==2)
 	{
-		forward_mm(120);
-		right_degrees(90);
+		forward_mm(50);
+		right_degrees(45);
 		clip_open();
-		_delay_ms(1000);
-		right_degrees(90);
-		forward_mm(150);
+		//_delay_ms(1000);
+		right_degrees(135);
+		forward_mm(70);
 	}
 	else if (garbage_rank==3)
 	{
 		//forward_mm(120);
-		left_degrees(40);
+		left_degrees(30);
 		clip_open();
-		_delay_ms(1000);
-		left_degrees(90);
+		//_delay_ms(1000);
+		left_degrees(120);
 		turn_on_line('l');
 	}
 	else if (garbage_rank==4)
 	{
-		forward_mm(120);
-		right_degrees(40);
+		//forward_mm(120);
+		right_degrees(30);
 		clip_open();
-		_delay_ms(1000);
-		right_degrees(90);
+		//_delay_ms(1000);
+		right_degrees(120);
 		turn_on_line('r');
 	}
 	if(sorted_rooms[count1+1]==0 && garbage!=0){
 		return_home();
 	}
+	find_line();
+	stop();
 	return;
 }
 void enter_room(int room){
@@ -968,7 +976,7 @@ void enter_room(int room){
 		forward();
 		velocity(150,150);
 		ShaftCountRight=0;
-		while(ShaftCountRight<=84);
+		while(ShaftCountRight<=85);
 		stop();
 		left_degrees(90);
 	}		
@@ -977,7 +985,7 @@ void enter_room(int room){
 		shaft=56;
 		follow_line(0);
 		velocity(150,150);
-		forward_mm(320);
+		forward_mm(290);
 		right_degrees(90);
 	}
 	forward_mm(145);
@@ -1059,7 +1067,6 @@ void delivery(){
 			}
 		}		//it will detect the garbage, put the service at empty space and pick up the garbage and dump it and wait at dumping section otherwise home
 }
-
 void calibrate(){
 	int left1=ShaftCountLeft,right1=ShaftCountRight;
 
@@ -1096,7 +1103,7 @@ void calibrate(){
 void follow_line(int RqrdLineConf)
 {
 	int last_line_conf=0;
-	ShaftCountRight=0,ShaftCountLeft=0;
+	ShaftCountRight=0;//,ShaftCountLeft=0;   ///////////////////////////////////////////////////////////////////////////////////
 	print_line_sensor();
 	forward();
 	//back();
@@ -1132,7 +1139,7 @@ void follow_line(int RqrdLineConf)
 		{
 			if (RqrdLineConf==111)
 				break;
-			else if(ShaftCountRight>=shaft | ShaftCountLeft>=shaft)
+			else if(ShaftCountRight>=shaft)// | ShaftCountLeft>=shaft)   ////////////////////////////////////////////////////////
 				break;
 		}
 	}
@@ -1165,26 +1172,29 @@ void turn_on_line(char direction)
 //initialization functions
 void init_devices(){
 	cli();											//Clears the global interrupt
-	servo1_pin_config();							//Configure PORTB 5 pin for servo motor 1 operation
-	servo2_pin_config();							//Configure PORTB 6 pin for servo motor 2 operation
-	servo3_pin_config();							//servo3
+	//servo1_pin_config();							//Configure PORTB 5 pin for servo motor 1 operation
+	//servo2_pin_config();							//Configure PORTB 6 pin for servo motor 2 operation
+	//servo3_pin_config();							//servo3
+	//servo3_pin_config();							//servo3
+	//timer1_init();
+	
 	motion_pin_config();							//robot motion pins config
 	left_encoder_pin_config();
 	right_encoder_pin_config();
 	color_sensor_pin_config();
 	GPIO_pin_config();							//GPIO pins config for LEDs to glow
 	buzzer_pin_config();
-	lcd_port_config();
+	//lcd_port_config();
 	adc_pin_config();
 	//MOSFET_switch_config();						//control switch for ir and line sensor leds
-	timer1_init();									//PWM for servo pins
+	//timer1_init();									//PWM for servo pins
 	timer5_init();								//PWM for velocity of bot or DC motors
 	color_sensor_pin_interrupt_init();
 	left_position_encoder_interrupt_init();
 	right_position_encoder_interrupt_init();
 	adc_init();
-	lcd_set_4bit();
-	lcd_init();
+	//lcd_set_4bit();
+	//lcd_init();
 	color_sensor_scaling();
 	//clip_open();
 	sei();										// Enables the global interrupt
@@ -1274,6 +1284,7 @@ void take_order1(){
 	if (judge_order(IA1,IA2)=='E')
 	{
 		IA2=color_detect();
+		velocity(251,255);
 		back_mm(150);
 		_delay_ms(1000);
 		back();
@@ -1296,6 +1307,7 @@ void take_order1(){
 	if (current_room!=5)
 	{
 			back();
+			velocity(252,255);
 			while (1)
 			{
 				if (print_line_sensor()==111)
@@ -1346,8 +1358,22 @@ void return_home()
 }
 int main()
 {
+	
 	init_devices();
+	//servo_3(0);
+	//_delay_ms(1000);
+	//servo_3_free();
+	PORTH= PORTH | 0x10;	 //turn on color sensor vcc and servo3
 	take_order1();
+	PORTH= PORTH & 0xCF;	 //turn off color sensor vcc and servo3
+	PORTH= PORTH | 0x20;	 //turn on servo vcc
+		timer1_init();
+		servo3_pin_config();
+		servo_3(100);
+		_delay_ms(1000);
+		servo_3_free();
+		servo1_pin_config();							//Configure PORTB 5 pin for servo motor 1 operation
+		servo2_pin_config();							//Configure PORTB 6 pin for servo motor 2 operation
 	sort_orders();
 	for(int j;j<5;j++){
 		lcd_print(2,j,sorted_rooms[j],1);
