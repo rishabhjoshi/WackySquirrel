@@ -7,7 +7,6 @@ LED pin configuration
 		|
 B	G	 +   R
 27  18  28  17
-
 ADC Connection:
 ADC CH.	   PORT	   Sensor
 0			PF0		Battery Voltage
@@ -22,16 +21,100 @@ ADC CH.	   PORT	   Sensor
 9			PK1		Sharp IR range sensor 1  left
 11			PK3		Sharp IR range sensor 3  front
 13			PK5		Sharp IR range sensor 5  right
-
-
-LCD Display interpretation:
-****************************************************************************
-BATTERY VOLTAGE		LEFT SHARP DIS   FRONT SHARP DIS    RIGHT SHARP DIS
-color detected			LEFT WL SENSOR	 CENTER WL SENSOR	RIGHT WL SENSOR
-****************************************************************************
-
+unsigned int Sharp_GP2D12_estimation(unsigned char adc_reading) {	
+	int sharp_error;
+	float distance;
+	unsigned int distanceInt;
+	distance = (int)(10.00*(2799.6*(1.00/(pow(adc_reading,1.1546)))));
+	if (distance<=140)
+	sharp_error = 15;
+	else if (distance<=250)
+	sharp_error = 20;
+	else if (distance<=360)
+	sharp_error = 35;
+	else if (distance<=525)
+	sharp_error = 45;
+	else if (distance<=800)
+	sharp_error = 50;
+	else
+	sharp_error=0;
+	distanceInt = (int)distance - sharp_error;
+	if(distanceInt>800)
+		distanceInt=800;
+	return distanceInt;
+}
+unsigned int side_Sharp_GP2D12_estimation(unsigned char adc_reading) {	
+	int sharp_error;
+	float distance;
+	unsigned int distanceInt;
+	distance = (int) 4795.2296*(pow((float)adc_reading,-0.925180938));
+		if (distance<=60)
+		sharp_error = 5;
+		else if (distance<=212 && distance>205)
+		sharp_error = -4;
+		else if (distance<280 && distance>230)
+		sharp_error = -6;
+		else if (distance>314 && distance<=333)
+		sharp_error = 10;
+		else if (distance<430 && distance >370)
+		sharp_error = 15;
+		else if (distance<500 && distance >470)
+		sharp_error= -15;
+		else if (distance<700 && distance >500)
+		sharp_error=35;
+		else if(distance <800 && distance>700)
+		sharp_error = 80;
+		else if (distance <920 && distance > 800)
+		sharp_error=135;
+		else
+		sharp_error=0;
+	
+	distanceInt = (int)distance - sharp_error;
+	if(distanceInt>800)
+	distanceInt=800;
+	return distanceInt;
+}
+int main()
+{
+	init_devices();
+	PORTG = PORTG | 0x04;		//to turn off sharp sensor234 and white line sensor leds
+	while (1)
+	{
+		PORTH = PORTH | 0x04;		//off sharp 1 and 5
+		PORTH = PORTH | 0x08;		//turn off proximity sensor leds
+		lcd_cursor_char_print(1,1,'O');
+		lcd_cursor_char_print(1,2,'N');
+		lcd_cursor_char_print(1,3,' ');
+		print_sensor(2,7,13);
+		print_sensor(2,1,9);
+		print_sensor(1,4,4);	//left proximity
+		print_sensor(1,8,6);	//front proximity
+		print_sensor(1,12,8);	//right proximity
+		_delay_ms(1000);
+		PORTH = PORTH & 0xFB;		//on sharp 1 and 5
+		PORTH = PORTH & 0xF7;		//turn on proximity sensor leds
+		lcd_cursor_char_print(1,1,'O');
+		lcd_cursor_char_print(1,2,'F');
+		lcd_cursor_char_print(1,3,'F');
+		print_sensor(2,7,13);
+		print_sensor(2,1,9);
+		print_sensor(1,5,4);	
+		print_sensor(1,9,6);
+		print_sensor(1,13,8);
+		_delay_ms(1000);
+	}
+}
 ****************************************************************************************************/
-//#define __OPTIMIZE__ -O0
+/*
+*
+* Team Id: 		eYRC-HS#3528
+* Author List: 		Kiran Dhamane,Ayush Sawarni,Rishabh Joshi,Siddharth
+* Filename: 		100Retakers
+* Theme: 		Hotel Guest Service
+* Functions: 		<Comma separated list of Functions defined in this file>
+* Global Variables:	threshold,ShaftCountLeft,ShaftCountRight,Degrees,sharp,value,pulse,red,blue,green,ADC_Value,adc_reading
+*
+*/
 #define F_CPU 14745600
 #include <avr/io.h>
 #include <avr/interrupt.h>
@@ -39,16 +122,16 @@ color detected			LEFT WL SENSOR	 CENTER WL SENSOR	RIGHT WL SENSOR
 #include <math.h>
 #include "lcd.h"
 //constants
-const int line_sensor_distance=200;
-const int threshold_line_sensor_value=70;
-const int Csensor_pos=50;   //distance of color sensor from the left sharp sensor
-const int max_speed=150,turn_speed=130;
+//const int line_sensor_distance=200;
+//const int threshold_line_sensor_value=70;
+//const int Csensor_pos=50;   //distance of color sensor from the left sharp sensor
+//const int max_speed=150,turn_speed=130;
 const int threshold=900;	//threshold value to decide the color 550 in the night and 800 in the daylight
 
 //volatile variables
 volatile unsigned long int ShaftCountLeft = 0;
 volatile unsigned long int ShaftCountRight = 0;
-volatile unsigned int Degrees,sharp,value;
+volatile unsigned int value;
 volatile unsigned long int pulse = 0;
 volatile unsigned long int  red;
 volatile unsigned long int  blue;
@@ -56,9 +139,6 @@ volatile unsigned long int  green;
 unsigned char ADC_Conversion(unsigned char);
 unsigned char ADC_Value;
 volatile unsigned char adc_reading;
-volatile unsigned int sharp_left=0,sharp_right=0,sharp_front=0,sharp_left_diff,sharp_right_diff,sharp_front_diff;
-//range of the sharp sensor is 10cm to 80cm
-int left_line=0,center_line=0,right_line=0;
 int line_conf=0;
 int ShortLeft=0,ShortFront=0,ShortRight=0;	//proximity sensors analog values for distance ranges 0 to 10cms ONLY
 int shaft=0;		//Every time we use follow_line(0) shaft is an approx shaft count after which line ends
