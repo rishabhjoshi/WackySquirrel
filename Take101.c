@@ -132,26 +132,26 @@ void print_sensor(char row, char coloumn,unsigned char channel) {
 ****************************************************************************************************/
 /*
 *
-* Team Id: 		eYRC-HS#3528
+* Team Id: 			eYRC-HS#3528
 * Author List: 		Kiran Dhamane,Ayush Sawarni,Rishabh Joshi,Siddharth
 * Filename: 		Take101
-* Theme: 		Hotel Guest Service
+* Theme: 			Hotel Guest Service
 * Functions: 		motion_set(),forward(),back(),left(),right(),stop(),linear_distance_mm(int),forward_mm(int),back_mm(int),
-			angle_rotate(int),left_degrees(int),right_degrees(int),servo1_pin_config(),servo2_pin_config(),servo3_pin_config(),
-*			servo_1(int),servo_2(int),servo_3(int),servo_1_free(),servo_2_free(),servo_3_free(),color_sensor_pin_interrupt_init(),
-*			left_encoder_pin_config(),right_encoder_pin_config(),left_position_encoder_interrupt_init(),
-*			right_position_encoder_interrupt_init(),timer1_init(),timer5_init(),velocity(int,int),print_line_sensor(),take_order1(),
-*			enter_room(),dump_garbage(),return_home(),buzzer_pin_config(),buzzer_on(),buzzer_off(),GPIO_pin_config(),
-*			find_line(),slow_follow_line(int),follow_line(int),turn_on_line(char),adc_pin_config(),adc_init(),ADC_Conversion(int),
-*			color_sensor_pin_config(),color_sensor_scaling(),motion_pin_config(),clip_close(),clip_open(),color_detect(),
-*			judge_order(char,char),sort_orders(),pickup_service_dumping_section(char),pickup_service_Shome(char),delivery(),init_devices(),
-*			main().
+*						angle_rotate(int),left_degrees(int),right_degrees(int),servo1_pin_config(),servo2_pin_config(),servo3_pin_config(),
+*						servo_1(int),servo_2(int),servo_3(int),servo_1_free(),servo_2_free(),servo_3_free(),color_sensor_pin_interrupt_init(),
+*						left_encoder_pin_config(),right_encoder_pin_config(),left_position_encoder_interrupt_init(),
+*						right_position_encoder_interrupt_init(),timer1_init(),timer5_init(),velocity(int,int),print_line_sensor(),take_order1(),
+*						enter_room(),dump_garbage(),return_home(),buzzer_pin_config(),buzzer_on(),buzzer_off(),GPIO_pin_config(),
+*						find_line(),slow_follow_line(int),follow_line(int),turn_on_line(char),adc_pin_config(),adc_init(),ADC_Conversion(int),
+*						color_sensor_pin_config(),color_sensor_scaling(),motion_pin_config(),clip_close(),clip_open(),color_detect(),
+*						judge_order(char,char),sort_orders(),pickup_service_dumping_section(char),pickup_service_Shome(char),delivery(),
+*						init_devices(),main().
 * Global Variables:	threshold,ShaftCountLeft,ShaftCountRight,pulse,red,blue,green,ADC_Value,adc_reading,line_conf,shaft,garbage_rank,
-*			color,pref[5],orders[5],sorted_rooms[6],current_room,position,count1
+*						color,pref[5],orders[5],sorted_rooms[6],current_room,position,count1
 *
 */
 
-
+//every function must have this comment before its declaration
 /*
 *
 * Function Name: 	<Function Name>
@@ -758,30 +758,11 @@ int count1=1;
 	//back_mm(50);
 	return;
 }
-/*kiran*/void return_home()
-{
-	if(position=='D')
-	{
-		follow_line(111);
-		forward();
-		_delay_ms(1000);
-		follow_line(111);
-		turn_on_line('l');
-	}
-	shaft=56;
-	follow_line(0);
-	velocity(200,200);
-	forward_mm(630);
-	find_line();
-	follow_line(111);
-	stop();
-	buzzer_on();
-	_delay_ms(5000);
-	buzzer_off();}
 
 
 
-/*siddharth*/void buzzer_pin_config (void)
+
+/*rishabh*/void buzzer_pin_config (void)
 {
 	DDRC = DDRC | 0x08;			//Setting PORTC 3 as output
 	PORTC = PORTC & 0xF7;		//Setting PORTC 3 logic low to turnoff buzzer
@@ -800,7 +781,7 @@ int count1=1;
 	port_restore = port_restore & 0xF7;
 	PORTC = port_restore;
 }
-/*siddharth*/void GPIO_pin_config(void)
+/*rishabh*/void GPIO_pin_config(void)
 {
 	DDRL = DDRL | 0xC3;   
 	//DDRD = DDRD & 0x0F;  
@@ -1023,6 +1004,26 @@ int count1=1;
 	DDRL = DDRL | 0x18;   
 	PORTL = PORTL | 0x18; 
 }
+/*rishabh*/void return_home()
+{
+	if(position=='D')
+	{
+		follow_line(111);
+		forward();
+		_delay_ms(1000);
+		follow_line(111);
+		turn_on_line('l');
+	}
+	shaft=56;
+	follow_line(0);
+	velocity(200,200);
+	forward_mm(630);
+	find_line();
+	follow_line(111);
+	stop();
+	buzzer_on();
+	_delay_ms(5000);
+	buzzer_off();}
 
 
 
