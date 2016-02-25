@@ -197,11 +197,13 @@ int count1=1;
 
 
 /* 
-	Name:	Motion Set
-	Input:	A binary code telling about the direction of motion.
-	Output:	void
-	Logic:	Sets the desired configuration for the pins connected to the motor.
-	Example Call:	motion_set(0x06);
+*
+*	Name:	Motion Set
+*	Input:	A binary code telling about the direction of motion.
+*	Output:	void
+*	Logic:	Sets the desired configuration for the pins connected to the motor.
+*	Example Call:	motion_set(0x06);
+*
 */
 void motion_set (unsigned char Direction)				//get checked
 {
@@ -214,12 +216,15 @@ void motion_set (unsigned char Direction)				//get checked
 	PORTA = PortARestore; 		// executing the command
 }
 
+
 /*
-	Name:	Forward
-	Input:	void
-	Output: void
-	Logic:	Sets the reuired input to motion_set for forward motion i.e. 0x06
-	Example call:	forward();
+*
+*	Name:	Forward
+*	Input:	void
+*	Output: void
+*	Logic:	Sets the reuired input to motion_set for forward motion i.e. 0x06
+*	Example call:	forward();
+*
 */
 void forward (void) 
 {
@@ -227,60 +232,74 @@ void forward (void)
 }
 
 /*
-	Name:	Back
-	Input:	void
-	Output:	void
-	Logic:	Sets the requires input to motion_set for backward motion i.e. 0x09
-	Example Call:	back();
+*
+*	Name:	Back
+*	Input:	void
+*	Output:	void
+*	Logic:	Sets the requires input to motion_set for backward motion i.e. 0x09
+*	Example Call:	back();
+*
 */
 void back (void)
 {
 	motion_set(0x09);
 }
 
+
 /*
-	Name:	Left
-	Input:	void
-	Output:	void
-	Logic:	Sets the requires input to motion_set for left turn i.e. 0x05
-	Example Call:	left();
+*
+*	Name:	Left
+*	Input:	void
+*	Output:	void
+*	Logic:	Sets the requires input to motion_set for left turn i.e. 0x05
+*	Example Call:	left();
+*
 */
 void left (void) 
 {
 	motion_set(0x05);
 }
 
+
 /*
-	Name:	Right
-	Input:	void
-	Output:	void
-	Logic:	Sets the requires input to motion_set for right turn i.e. 0x0A
-	Example Call: right();
+*
+*	Name:	Right
+*	Input:	void
+*	Output:	void
+*	Logic:	Sets the requires input to motion_set for right turn i.e. 0x0A
+*	Example Call: right();
+*
 */
 void right (void)
 {
 	motion_set(0x0A);
 }
 
+
 /*
-	Name:	Stop
-	Input:	void
-	Output:	void
-	Logic:	Sets the requires input to motion_set for ceasing motion i.e. 0x00
-	Example Call:	stop();
+*
+*	Name:	Stop
+*	Input:	void
+*	Output:	void
+*	Logic:	Sets the requires input to motion_set for ceasing motion i.e. 0x00
+*	Example Call:	stop();
+*
 */
 void stop (void)
 {
 	motion_set(0x00);
 }
 
+
 /*
-	Name:	Linear_distance_mm
-	Input:	Distance in mm to be travelled by any motion set.
-	Output:	void
-	Logic:	Converts distance in mm to shaft count by dividing by 5.338. Then setting ShaftCountRight to 0. After that it
-			checks that the funciton is executed till the ReqdShaftCount is equal to ShaftCountRight.
-	Example call:	linear_distance_mm(45); 
+*
+*	Name:	Linear_distance_mm
+*	Input:	Distance in mm to be travelled by any motion set.
+*	Output:	void
+*	Logic:	Converts distance in mm to shaft count by dividing by 5.338. Then setting ShaftCountRight to 0. After that it
+*			checks that the funciton is executed till the ReqdShaftCount is equal to ShaftCountRight.
+*	Example call:	linear_distance_mm(45); 
+*
 */
 void linear_distance_mm(unsigned int DistanceInMM)
 {
@@ -302,12 +321,15 @@ void linear_distance_mm(unsigned int DistanceInMM)
 	stop(); 													//Stop robot
 }
 
+
 /*
-	Name:	forward_mm
-	Input:	Distance to be travelled in mm as integer.
-	Output:	void
-	Logic:	Uses forward() and linear_distance_mm() to move forward the specified distance.
-	Example Call:	forward_mm(60);
+*
+*	Name:	forward_mm
+*	Input:	Distance to be travelled in mm as integer.
+*	Output:	void
+*	Logic:	Uses forward() and linear_distance_mm() to move forward the specified distance.
+*	Example Call:	forward_mm(60);
+*
 */
 void forward_mm(unsigned int DistanceInMM)
 {
@@ -315,12 +337,15 @@ void forward_mm(unsigned int DistanceInMM)
 	linear_distance_mm(DistanceInMM);
 }
 
+
 /*
-	Name:	Back_mm
-	Input:	Distance to be travelled in mm as integer.
-	Output:	void
-	Logic:	Uses back() and linear_distance_mm() to move backward the specified distance.
-	Example Call:	back_mm(80);
+*
+*	Name:	Back_mm
+*	Input:	Distance to be travelled in mm as integer.
+*	Output:	void
+*	Logic:	Uses back() and linear_distance_mm() to move backward the specified distance.
+*	Example Call:	back_mm(80);
+*
 */
 void back_mm(unsigned int DistanceInMM) 
 {
@@ -328,14 +353,17 @@ void back_mm(unsigned int DistanceInMM)
 	linear_distance_mm(DistanceInMM);
 }
 
+
 /*
-	Name:	angle_rotate
-	Input:	Amount of degrees to be rotated
-	Output:	void
-	Logic:	Rotate the bot by converting degrees to appropriate shaft counts.
-			Required shaft count = degrees/3.60351
-			if any of the shaft counts exceeds required shaft count, the rotation stops.
-	Example call:	angle_rotate(40);
+*
+*	Name:	angle_rotate
+*	Input:	Amount of degrees to be rotated
+*	Output:	void
+*	Logic:	Rotate the bot by converting degrees to appropriate shaft counts.
+*			Required shaft count = degrees/3.60351
+*			if any of the shaft counts exceeds required shaft count, the rotation stops.
+*	Example call:	angle_rotate(40);
+*
 */
 void angle_rotate(unsigned int Degrees)			// get checked
 {
@@ -355,12 +383,15 @@ void angle_rotate(unsigned int Degrees)			// get checked
 	stop();										// stop robot
 }
 
+
 /*
-	Name:	left_degrees
-	Input:	Amount of degrees to be rotated
-	Output:	void
-	Logic:	Rotate the bot left using left() and angle_rotate();
-	Example call:	left_degrees(40);
+*
+*	Name:	left_degrees
+*	Input:	Amount of degrees to be rotated
+*	Output:	void
+*	Logic:	Rotate the bot left using left() and angle_rotate();
+*	Example call:	left_degrees(40);
+*
 */
 void left_degrees(unsigned int Degrees) 
 {
@@ -369,12 +400,15 @@ void left_degrees(unsigned int Degrees)
 	
 }
 
+
 /*
-	Name:	right_degrees
-	Input:	Amount of degrees to be rotated
-	Output:	void
-	Logic:	Rotate the bot left using right() and angle_rotate();
-	Example call: right_degrees(40);
+*
+*	Name:	right_degrees
+*	Input:	Amount of degrees to be rotated
+*	Output:	void
+*	Logic:	Rotate the bot left using right() and angle_rotate();
+*	Example call: right_degrees(40);
+*
 */
 void right_degrees(unsigned int Degrees) 
 {
@@ -382,12 +416,15 @@ void right_degrees(unsigned int Degrees)
 	angle_rotate(Degrees);						// stops bot after required degrees
 }
 
+
 /*
-	Name: servo1_pin_config
-	Input:	void
-	Output:	void
-	Logic:	
-	Example call:	servo_pin_config(void);
+*
+*	Name: servo1_pin_config
+*	Input:	void
+*	Output:	void
+*	Logic:	
+*	Example call:	servo_pin_config(void);
+*
 */
 /*siddharth*/void servo1_pin_config (void)				// to be done
 {
@@ -395,12 +432,15 @@ void right_degrees(unsigned int Degrees)
  PORTB = PORTB | 0x20; 
 }
 
+
 /*
-	Name:	servo2_pin_config
-	Input:	voif
-	Output:	void
-	Logic:	
-	Example call:	servo2_pin_config();
+*
+*	Name:	servo2_pin_config
+*	Input:	voif
+*	Output:	void
+*	Logic:	
+*	Example call:	servo2_pin_config();
+*
 */
 /*siddharth*/void servo2_pin_config (void)				// to be done
 {
@@ -408,12 +448,15 @@ void right_degrees(unsigned int Degrees)
  PORTB = PORTB | 0x40; 
 }
 
+
 /*
-	Name:	serov3_pin_connfig
-	Input:	void
-	Output:	void
-	Logic:	
-	Example call:	servo3_pin_config();
+*
+*	Name:	serov3_pin_connfig
+*	Input:	void
+*	Output:	void
+*	Logic:	
+*	Example call:	servo3_pin_config();
+*
 */
 /*siddharth*/void servo3_pin_config (void)				// to be done
 {
@@ -421,12 +464,15 @@ void right_degrees(unsigned int Degrees)
 	PORTB = PORTB | 0x80; //setting PORTB 7 pin to logic 1
 }
 
+
 /*
-	Name:	servo_1
-	Input:	
-	Output:	void
-	Logic:	
-	Example call:	servo1();
+*
+*	Name:	servo_1
+*	Input:	
+*	Output:	void
+*	Logic:	
+*	Example call:	servo1();
+*
 */
 /*siddharth*/void servo_1(unsigned char degrees)			// to be done 
 {
@@ -436,12 +482,15 @@ void right_degrees(unsigned int Degrees)
  OCR1AL = (unsigned char) PositionPanServo;
 }
 
+
 /*
-	Name:	servo_2
-	Input:	
-	Output:	void
-	Logic:	
-	Example call:	servo_2();
+*
+*	Name:	servo_2
+*	Input:	
+*	Output:	void
+*	Logic:	
+*	Example call:	servo_2();
+*
 */
 /*siddharth*/void servo_2(unsigned char degrees)			// to be done 
 {
@@ -451,12 +500,15 @@ void right_degrees(unsigned int Degrees)
  OCR1BL = (unsigned char) PositionTiltServo;
 }
 
+
 /*
-	Name:	servo_3
-	Input:	
-	Output:	void
-	Logic:	
-	Example call:	servo_3();
+*
+*	Name:	servo_3
+*	Input:	
+*	Output:	void
+*	Logic:	
+*	Example call:	servo_3();
+*
 */
 /*siddharth*/void servo_3(unsigned char degrees) 			// to be done
 {
@@ -466,12 +518,15 @@ void right_degrees(unsigned int Degrees)
 	OCR1CL = (unsigned char) PositionServo;
 }
 
+
 /*
-	Name:	servo_1_free
-	Input:	void
-	Output:	void
-	Logic:	
-	Example call:	servo_1();
+*
+*	Name:	servo_1_free
+*	Input:	void
+*	Output:	void
+*	Logic:	
+*	Example call:	servo_1();
+*
 */
 /*siddharth*/void servo_1_free (void) 					// to be done
 {
@@ -479,12 +534,15 @@ void right_degrees(unsigned int Degrees)
  OCR1AL = 0xFF; //Servo 1 off
 }
 
+
 /*
-	Name:	servo_2_free
-	Input:	void
-	Output:	void
-	Logic:	
-	Example call:	servo_2_free();
+*
+*	Name:	servo_2_free
+*	Input:	void
+*	Output:	void
+*	Logic:	
+*	Example call:	servo_2_free();
+*
 */
 /*siddharth*/void servo_2_free (void) 
 {
@@ -493,11 +551,13 @@ void right_degrees(unsigned int Degrees)
 }
 
 /*
-	Name:	servo_3-free
-	Input:	void
-	Output:	void
-	Logic:	
-	Example call:	servo_3_free();
+*
+*	Name:	servo_3-free
+*	Input:	void
+*	Output:	void
+*	Logic:	
+*	Example call:	servo_3_free();
+*
 */
 /*siddharth*/void servo_3_free (void					to be done 
 {
