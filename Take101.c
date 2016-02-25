@@ -832,31 +832,27 @@ void forward_mm(unsigned int DistanceInMM)
 	return;
 }
 
-
-
 /*
 *
 * Function Name: 	buzzer_pin_config
-* Input: 		void
-* Output: 		void
-* Logic: 		Initializes buzzer_pin by setting output as 0 then turning off buzzer
+* Input: 			void
+* Output: 			void
+* Logic: 			Initializes buzzer_pin by setting output as 0 then turning off buzzer
 * Example Call:		buzzer_pin_config();
 *
 */
 void buzzer_pin_config (void)
 {
-	DDRC = DDRC | 0x08;			//Setting PORTC 3 as output
+	DDRC = DDRC | 0x08;		//Setting PORTC 3 as output
 	PORTC = PORTC & 0xF7;		//Setting PORTC 3 logic low to turnoff buzzer
 }
-
-
 
 /*
 *
 * Function Name: 	buzzer_on
-* Input: 		void
-* Output: 		void
-* Logic: 		Starts the buzzer by switching on the PC3 pin
+* Input: 			void
+* Output: 			void
+* Logic: 			Starts the buzzer by switching on the PC3 pin
 * Example Call:		buzzer_on();
 *
 */
@@ -864,17 +860,37 @@ void buzzer_on (void)
 {
 	unsigned char port_restore = 0;
 	port_restore = PINC;
-	port_restore = port_restore | 0x08;
-	PORTC = port_restore;
+	port_restore = port_restore | 0x08;  	// To switch on the PC3 pin	
+	PORTC = port_restore;					// Switches on the PC3 pin
 }
-/*rishabh*/void buzzer_off (void)
+
+/*
+*
+* Function Name: 	buzzer_off
+* Input: 			void
+* Output: 			void
+* Logic: 			Stops the buzzer by switching off the PC3 pin
+* Example Call:		buzzer_off();
+*
+*/
+void buzzer_off (void)
 {
 	unsigned char port_restore = 0;
 	port_restore = PINC;
-	port_restore = port_restore & 0xF7;
-	PORTC = port_restore;
+	port_restore = port_restore & 0xF7;  // To switch off the PC3 pin
+	PORTC = port_restore;				 // Switches off the PC3 pin
 }
-/*rishabh*/void GPIO_pin_config(void)
+
+/*
+*
+* Function Name: 	GPIO_pin_config
+* Input: 			void
+* Output: 			void
+* Logic: 			Sets output to 4 GPIO pins and they are set true
+* Example Call:		GPIO_pin_config();
+*
+*/
+void GPIO_pin_config(void)
 {
 	DDRL = DDRL | 0xC3;   
 	//DDRD = DDRD & 0x0F;  
@@ -885,6 +901,8 @@ void buzzer_on (void)
 	//PORTH= PORTH | 0x20;	 //turn on servo3 vcc
 	//PORTH= PORTH | 0x10;	 //turn on color sensor vcc
 }
+
+
 /*rishabh*/void find_line()
 {
 	print_line_sensor();
