@@ -491,14 +491,34 @@ void forward_mm(unsigned int DistanceInMM)
 	
 	TCCR5B = 0x0B;	//WGM12=1; CS12=0, CS11=1, CS10=1 (Prescaler=64)
 }
-/*kiran*/void velocity (unsigned char left_motor, unsigned char right_motor) 
+
+/*
+*
+* Function Name: 	velocity
+* Input: 			left_motor, right_motor (unsigned char) - //////////////////// 
+* Output: 			void
+* Logic: 			Initializes buzzer_pin by setting output as 0 then turning off buzzer ///////////////
+* Example Call:		buzzer_pin_config(); //////////////////
+*
+*/
+void velocity (unsigned char left_motor, unsigned char right_motor) 
 {
 	OCR5AL = (unsigned char)left_motor;
 	OCR5BL = (unsigned char)right_motor;
 	//lcd_print(2,1,left_motor,3);
 	//lcd_print(2, 5, right_motor, 3);
 }	
-/*kiran*/int print_line_sensor()
+
+/*
+*
+* Function Name: 	print_line_sensor
+* Input: 			void
+* Output: 			int - line configuration (3 digit number)
+* Logic: 			Initializes buzzer_pin by setting output as 0 then turning off buzzer////////////////
+* Example Call:		buzzer_pin_config();////////////////////////////
+*
+*/
+int print_line_sensor()
 {
 	 int left_line=0,center_line=0,right_line=0;
 	 
@@ -510,8 +530,19 @@ void forward_mm(unsigned int DistanceInMM)
 	 	right_line=1;
 	 line_conf = 100*left_line + 10*center_line +right_line;
 	 //lcd_print(1,1,line_conf,3);
-	 return line_conf;}
-/*kiran*/void take_order1()
+	 return line_conf;
+}
+
+/*
+*
+* Function Name: 	take_order1
+* Input: 			void
+* Output: 			void
+* Logic: 			Initializes buzzer_pin by setting output as 0 then turning off buzzer//////////////
+* Example Call:		take_order1();
+*
+*/
+void take_order1(void)
 {
 	char IA1,IA2;
 	current_room++;
@@ -619,7 +650,17 @@ void forward_mm(unsigned int DistanceInMM)
 	take_order1();
 	return;
 }
-/*kiran*/void enter_room(int room)
+
+/*
+*
+* Function Name: 	enter_room
+* Input: 			room (int) - Room number 
+* Output: 			void
+* Logic: 			Initializes buzzer_pin by setting output as 0 then turning off buzzer  //////////////////
+* Example Call:		enter_room(1);  //////////////////
+*
+*/
+void enter_room(int room)
 {
 	if(room!=4)
 	{
@@ -671,7 +712,17 @@ void forward_mm(unsigned int DistanceInMM)
 	stop();
 	forward_mm(50);
 }
-/*kiran*/void dump_garbage(int room)
+
+/*
+*
+* Function Name: 	dump_garbage
+* Input: 			room (int) - Room number
+* Output: 			void
+* Logic: 			Initializes buzzer_pin by setting output as 0 then turning off buzzer  /////////////////
+* Example Call:		dump_garbage(1);  ////////////////////////
+*
+*/
+void dump_garbage(int room)
 {
 	char turn='r';
 	int garbage=1;		
