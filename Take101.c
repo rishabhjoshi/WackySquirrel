@@ -1241,12 +1241,19 @@ void return_home()
 	stop();
 	buzzer_on();
 	_delay_ms(5000);
-	buzzer_off();}
+	buzzer_off();
+}
 
-
-
-
-/*ayush*/void clip_close(void) 
+/*
+*
+* Function Name: 	clip_close
+* Input: 			void
+* Output: 			void
+* Logic: 			Returns the bot to home after servicing all rooms///////////////////////////
+* Example Call:		clip_close();
+*
+*/
+void clip_close(void) 
 {	
 	for (int i=0;i<181;i++)
 		{
@@ -1258,7 +1265,17 @@ void return_home()
 	servo_1_free();
 	servo_2_free();
 }
-/*ayush*/void clip_open(void)
+
+/*
+*
+* Function Name: 	clip_open
+* Input: 			void
+* Output: 			void
+* Logic: 			Returns the bot to home after servicing all rooms/////////////////////////////
+* Example Call:		clip_open();
+*
+*/
+void clip_open(void)
 {
 		for (int i=0;i<181;i++)
 		{
@@ -1270,7 +1287,17 @@ void return_home()
 		servo_1_free();
 		servo_2_free();
 }
-/*ayush*/char color_detect() 
+
+/*
+*
+* Function Name: 	color_detect
+* Input: 			void
+* Output: 			void
+* Logic: 			Returns the bot to home after servicing all rooms/////////////////
+* Example Call:		color_detect();
+*
+*/
+char color_detect(void) 
 {
 	//lcd_wr_command(0x01);
 	//red
@@ -1339,7 +1366,17 @@ void return_home()
 	//lcd_wr_command(0x01); //Clear the LCD
 	return color;
 }
-/*ayush*/char judge_order(char room1,char room2)
+
+/*
+*
+* Function Name: 	judge_order
+* Input: 			2 characters corresponding to the colours of the service request panels - room1 and room2
+* Output: 			char - ////////////////
+* Logic: 			Returns the bot to home after servicing all rooms/////////////
+* Example Call:		return_home();///////////////////
+*
+*/
+char judge_order(char room1,char room2)
 {
 	 char order1;
 	 if (room1 != 'K') // K is black
@@ -1383,7 +1420,17 @@ void return_home()
 	 lcd_cursor_char_print(2,1,order1);
 	 return order1;
 }
-/*ayush*/void sort_orders()
+
+/*
+*
+* Function Name: 	sort_orders
+* Input: 			void
+* Output: 			void
+* Logic: 			Returns the bot to home after servicing all rooms///////////////////////////
+* Example Call:		sort_orders();
+*
+*/
+void sort_orders(void)
 {
 	int max=0; 
 	int max_room=0;
@@ -1401,7 +1448,17 @@ void return_home()
 		max=0;
 	}	
 }
-/*ayush*/void pickup_service_dumping_section(char current_service)
+
+/*
+*
+* Function Name: 	pickup_service_dumping_section
+* Input: 			current_service (char) - ///////////////////////////
+* Output: 			void
+* Logic: 			Returns the bot to home after servicing all rooms ///////////////////////
+* Example Call:		pickup_service_dumping_section('R');
+*
+*/
+void pickup_service_dumping_section(char current_service)
 {
 	int cross,tempv=0,ret=1;
 	
@@ -1482,7 +1539,17 @@ void return_home()
 		turn_on_line('r');
 	return;
 }
-/*ayush*/void pickup_service_Shome(char current_service)
+
+/*
+*
+* Function Name: 	pickup_service_Shome
+* Input: 			current_service (char) - ///////////////////////////
+* Output: 			void
+* Logic: 			Returns the bot to home after servicing all rooms
+* Example Call:		pickup_service_Shome('G');
+*
+*/
+void pickup_service_Shome(char current_service)
 {
 	//the center point of the two wheels is exactly on service home
 	char turn;
@@ -1544,7 +1611,17 @@ void return_home()
 		turn_on_line('r');
 	}
 }
-/*ayush*/void delivery()
+
+/*
+*
+* Function Name: 	delivery
+* Input: 			void
+* Output: 			void
+* Logic: 			Returns the bot to home after servicing all rooms
+* Example Call:		delivery();
+*
+*/
+void delivery(void)
 {	
 	//position can be only dumping section or service home
 	//for service home position=s
@@ -1565,7 +1642,17 @@ void return_home()
 			}
 		}		//it will detect the garbage, put the service at empty space and pick up the garbage and dump it and wait at dumping section otherwise home
 }
-/*ayush*/void init_devices()
+
+/*
+*
+* Function Name: 	init_devices
+* Input: 			void
+* Output: 			void
+* Logic: 			Returns the bot to home after servicing all rooms
+* Example Call:		init_devices();
+*
+*/
+void init_devices(void)
 {
 	cli();									//Clears the global interrupt
 	motion_pin_config();							//robot motion pins config
@@ -1585,8 +1672,19 @@ void return_home()
 	//lcd_set_4bit();
 	//lcd_init();
 	color_sensor_scaling();
-	sei();									// Enables the global interrupt}
-/*ayush*/int main()
+	sei();									// Enables the global interrupt
+}
+
+/*
+*
+* Function Name: 	main
+* Input: 			void
+* Output: 			0 (int) - Main returns 0 signifying successful run of program
+* Logic: 			Returns the bot to home after servicing all rooms
+* Example Call:		Not Called
+*
+*/
+int main()
 {
 	init_devices();
 	PORTH= PORTH | 0x10;	 		//turn on color sensor vcc and servo3
