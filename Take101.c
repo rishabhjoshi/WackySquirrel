@@ -196,7 +196,14 @@ char position='S';
 int count1=1;
 
 
-/*siddharth*/void motion_set (unsigned char Direction)
+/* 
+	Name:	Motion Set
+	Input:	A binary code telling about the direction of motion.
+	Output:	void
+	Logic:	Sets the desired configuration for the pins connected to the motor.
+	Example Call:	motion_set(0x06);
+*/
+void motion_set (unsigned char Direction)				//get checked
 {
 	unsigned char PortARestore = 0;
 
@@ -206,49 +213,115 @@ int count1=1;
 	PortARestore |= Direction; // adding lower nibbel for forward command and restoring the PORTA status
 	PORTA = PortARestore; 		// executing the command
 }
-/*siddharth*/void forward (void) 
+
+/*
+	Name:	Forward
+	Input:	void
+	Output: void
+	Logic:	Sets the reuired input to motion_set for forward motion i.e. 0x06
+	Example call:	forward();
+*/
+void forward (void) 
 {
 	motion_set(0x06);
 }
-/*siddharth*/void back (void)
+
+/*
+	Name:	Back
+	Input:	void
+	Output:	void
+	Logic:	Sets the requires input to motion_set for backward motion i.e. 0x09
+	Example Call:	back();
+*/
+void back (void)
 {
 	motion_set(0x09);
 }
-/*siddharth*/void left (void) 
+
+/*
+	Name:	Left
+	Input:	void
+	Output:	void
+	Logic:	Sets the requires input to motion_set for left turn i.e. 0x05
+	Example Call:	left();
+*/
+void left (void) 
 {
 	motion_set(0x05);
 }
-/*siddharth*/void right (void)
+
+/*
+	Name:	Right
+	Input:	void
+	Output:	void
+	Logic:	Sets the requires input to motion_set for right turn i.e. 0x0A
+	Example Call: right();
+*/
+void right (void)
 {
 	motion_set(0x0A);
 }
-/*siddharth*/void stop (void)
+
+/*
+	Name:	Stop
+	Input:	void
+	Output:	void
+	Logic:	Sets the requires input to motion_set for ceasing motion i.e. 0x00
+	Example Call:	stop();
+*/
+void stop (void)
 {
 	motion_set(0x00);
 }
-/* siddharth*/void linear_distance_mm(unsigned int DistanceInMM)
-{
-	float ReqdShaftCount = 0;
-	unsigned long int ReqdShaftCountInt = 0;
 
-	ReqdShaftCount = DistanceInMM / 5.338; // division by resolution to get shaft count
+/*
+	Name:	Linear_distance_mm
+	Input:	Distance in mm to be travelled by any motion set.
+	Output:	void
+	Logic:	Converts distance in mm to shaft count by dividing by 5.338. Then setting ShaftCountRight to 0. After that it
+			checks that the funciton is executed till the ReqdShaftCount is equal to ShaftCountRight.
+	Example call:	linear_distance_mm(45); 
+*/
+void linear_distance_mm(unsigned int DistanceInMM)
+{
+	float ReqdShaftCount = 0;									// Shaft count that would equal the distance to be travelled.
+	unsigned long int ReqdShaftCountInt = 0;					
+
+	ReqdShaftCount = DistanceInMM / 5.338; 						// division by resolution to get shaft count
 	ReqdShaftCountInt = (unsigned long int) ReqdShaftCount;
 	
-	ShaftCountRight = 0;
+	ShaftCountRight = 0;										// Global variable. Updated automatically as the bot moves.
 	while(1)
 	{
-		if(ShaftCountRight > ReqdShaftCountInt)
+		if(ShaftCountRight > ReqdShaftCountInt)					// when distance travelled exceeds the required distance the 
+																// function breaks
 		{
 			break;
 		}
 	}
-	stop(); //Stop robot
+	stop(); 													//Stop robot
 }
-/*siddharth*/void forward_mm(unsigned int DistanceInMM)
+
+/*
+	Name:	forward_mm
+	Input:	Distance to be travelled in mm as integer.
+	Output:	void
+	Logic:	Uses forward() and linear_distance_mm() to move forward the specified distance.
+	Example Call:	forward_mm(60);
+*/
+void forward_mm(unsigned int DistanceInMM)
 {
 	forward();
 	linear_distance_mm(DistanceInMM);
 }
+
+/*
+	Name:	Back_mm
+	Input:	Distance to be travelled in mm as integer.
+	Output:	void
+	Logic:	Uses back() and linear_distance_mm() to travel the
+	Example Call:	b
+*/
 /*siddharth*/void back_mm(unsigned int DistanceInMM) 
 {
 	back();
