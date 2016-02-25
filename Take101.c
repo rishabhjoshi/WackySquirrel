@@ -1101,14 +1101,34 @@ void turn_on_line(char direction)
 	stop();
 	return;
 }
-/*rishabh*/void adc_pin_config (void) 
+
+/*
+*
+* Function Name: 	adc_pin_config
+* Input: 			void
+* Output: 			void
+* Logic: 			Initializes ADC channel pins by setting 0 to all the channel pins
+* Example Call:		adc_pin_config();
+*
+*/
+void adc_pin_config (void) 
 {
 	DDRF = 0x00; //set PORTF direction as input
 	PORTF = 0x00; //set PORTF pins floating
 	DDRK = 0x00; //set PORTK direction as input
 	PORTK = 0x00; //set PORTK pins floating
 }
-/*rishabh*/void adc_init() 
+
+/*
+*
+* Function Name: 	adc_init
+* Input: 			void
+* Output: 			void
+* Logic: 			Initilizes ADCs pins
+* Example Call:		adc_init();
+*
+*/
+void adc_init() 
 {
 	ADCSRA = 0x00;
 	ADCSRB = 0x00;		//MUX5 = 0
@@ -1116,7 +1136,17 @@ void turn_on_line(char direction)
 	ACSR = 0x80;
 	ADCSRA = 0x86;		//ADEN=1 --- ADIE=1 --- ADPS2:0 = 1 1 0
 }
-/*rishabh*/unsigned char ADC_Conversion(unsigned char Ch)
+
+/*
+*
+* Function Name: 	ADC_Conversion
+* Input: 			Ch (unsigned char) - Channel Number
+* Output: 			unsigned char - integer value between 0 and 255, as a hex value.
+* Logic: 			The channel number is converted to its corresponding Analog Value
+* Example Call:		if(ADC_Conversion(2) > 32);
+*
+*/
+unsigned char ADC_Conversion(unsigned char Ch)
 {
 	unsigned char a;
 	if(Ch>7)
@@ -1132,12 +1162,32 @@ void turn_on_line(char direction)
 	ADCSRB = 0x00;
 	return a;
 }
-/*rishabh*/void color_sensor_pin_config(void) 
+
+/*
+*
+* Function Name: 	color_sensor_pin_config
+* Input: 			void
+* Output: 			void
+* Logic: 			Initializes color sensor pins
+* Example Call:		color_sensor_pin_config();
+*
+*/
+void color_sensor_pin_config(void) 
 {
 	DDRD  = DDRD | 0xFE; //set PD0 as input for color sensor output
 	PORTD = PORTD | 0x01;//Enable internal pull-up for PORTD 0 pin
 }
-/*rishabh*/void color_sensor_scaling() 
+
+/*
+*
+* Function Name: 	color_sensor_scaling
+* Input: 			void
+* Output: 			void
+* Logic: 			Sets particular power to the color sensor
+* Example Call:		color_sensor_scaling();
+*
+*/
+void color_sensor_scaling() 
 {
 	//Output Scaling 20% from datasheet
 	//PORTD = PORTD & 0xEF;
@@ -1145,14 +1195,34 @@ void turn_on_line(char direction)
 	//PORTD = PORTD & 0xDF; //set S1 low
 	PORTD = PORTD | 0x20; //set S1 high
 }
-/*rishabh*/void motion_pin_config (void)
+
+/*
+*
+* Function Name: 	motion_pin_config
+* Input: 			void
+* Output: 			void
+* Logic: 			Configures motion pins for the DC motors and the servo motors.
+* Example Call:		motion_pin_config();
+*
+*/
+void motion_pin_config (void)
 {
-	DDRA = DDRA | 0x0F;
+	DDRA = DDRA | 0x0F;  	// A -> DC motors pins
 	PORTA = PORTA & 0xF0;
-	DDRL = DDRL | 0x18;   
+	DDRL = DDRL | 0x18;   	// L -> servo motor pins
 	PORTL = PORTL | 0x18; 
 }
-/*rishabh*/void return_home()
+
+/*
+*
+* Function Name: 	return_home
+* Input: 			void
+* Output: 			void
+* Logic: 			Returns the bot to home after servicing all rooms
+* Example Call:		return_home();
+*
+*/
+void return_home()
 {
 	if(position=='D')
 	{
