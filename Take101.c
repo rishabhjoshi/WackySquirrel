@@ -340,11 +340,11 @@ void forward_mm(unsigned int DistanceInMM)
 
 /*
 *
-*	Name:	Back_mm
-*	Input:	Distance to be travelled in mm as integer.
-*	Output:	void
-*	Logic:	Uses back() and linear_distance_mm() to move backward the specified distance.
-*	Example Call:	back_mm(80);
+* Function Name:	Back_mm
+* Input:			Distance to be travelled in mm as integer.
+* Output:			void
+* Logic:			Uses back() and linear_distance_mm() to move backward the specified distance.
+* Example Call:		back_mm(80);
 *
 */
 void back_mm(unsigned int DistanceInMM) 
@@ -356,13 +356,13 @@ void back_mm(unsigned int DistanceInMM)
 
 /*
 *
-*	Name:	angle_rotate
-*	Input:	Amount of degrees to be rotated
-*	Output:	void
-*	Logic:	Rotate the bot by converting degrees to appropriate shaft counts.
-*			Required shaft count = degrees/3.60351
-*			if any of the shaft counts exceeds required shaft count, the rotation stops.
-*	Example call:	angle_rotate(40);
+* Function Name:	angle_rotate
+* Input:			Amount of degrees to be rotated
+* Output:			void
+* Logic:			Rotate the bot by converting degrees to appropriate shaft counts.
+* 					Required shaft count = degrees/3.60351
+* 					if any of the shaft counts exceeds required shaft count, the rotation stops.
+* Example call:		angle_rotate(40);
 *
 */
 void angle_rotate(unsigned int Degrees)			// get checked
@@ -386,11 +386,11 @@ void angle_rotate(unsigned int Degrees)			// get checked
 
 /*
 *
-*	Name:	left_degrees
-*	Input:	Amount of degrees to be rotated
-*	Output:	void
-*	Logic:	Rotate the bot left using left() and angle_rotate();
-*	Example call:	left_degrees(40);
+* Function Name:	left_degrees
+* Input:			Amount of degrees to be rotated
+* Output:			void
+* Logic:			Rotate the bot left using left() and angle_rotate();
+* Example call:		left_degrees(40);
 *
 */
 void left_degrees(unsigned int Degrees) 
@@ -403,11 +403,11 @@ void left_degrees(unsigned int Degrees)
 
 /*
 *
-*	Name:	right_degrees
-*	Input:	Amount of degrees to be rotated
-*	Output:	void
-*	Logic:	Rotate the bot left using right() and angle_rotate();
-*	Example call: right_degrees(40);
+* Function Name:	right_degrees
+* Input:			Amount of degrees to be rotated
+* Output:			void
+* Logic:			Rotate the bot left using right() and angle_rotate();
+* Example call: 	right_degrees(40);
 *
 */
 void right_degrees(unsigned int Degrees) 
@@ -419,11 +419,11 @@ void right_degrees(unsigned int Degrees)
 
 /*
 *
-*	Name: servo1_pin_config
-*	Input:	void
-*	Output:	void
-*	Logic:	
-*	Example call:	servo_pin_config(void);
+* Function Name:	 servo1_pin_config
+* Input:			void
+* Output:			void
+* Logic:	
+* Example call:		servo_pin_config(void);
 *
 */
 /*siddharth*/void servo1_pin_config (void)				// to be done
@@ -435,11 +435,11 @@ void right_degrees(unsigned int Degrees)
 
 /*
 *
-*	Name:	servo2_pin_config
-*	Input:	voif
-*	Output:	void
-*	Logic:	
-*	Example call:	servo2_pin_config();
+* Function Name:	servo2_pin_config
+* Input:			voif
+* Output:			void
+* Logic:	
+* Example call:		servo2_pin_config();
 *
 */
 /*siddharth*/void servo2_pin_config (void)				// to be done
@@ -451,11 +451,11 @@ void right_degrees(unsigned int Degrees)
 
 /*
 *
-*	Name:	serov3_pin_connfig
-*	Input:	void
-*	Output:	void
-*	Logic:	
-*	Example call:	servo3_pin_config();
+* Function Name:	serov3_pin_connfig
+* Input:			void
+* Output:			void
+* Logic:	
+* Example call:		servo3_pin_config();
 *
 */
 /*siddharth*/void servo3_pin_config (void)				// to be done
@@ -467,11 +467,11 @@ void right_degrees(unsigned int Degrees)
 
 /*
 *
-*	Name:	servo_1
-*	Input:	
-*	Output:	void
-*	Logic:	
-*	Example call:	servo1();
+* Function Name:	servo_1
+* Input:	
+* Output:			void
+* Logic:	
+* Example call:		servo1();
 *
 */
 /*siddharth*/void servo_1(unsigned char degrees)			// to be done 
@@ -485,11 +485,11 @@ void right_degrees(unsigned int Degrees)
 
 /*
 *
-*	Name:	servo_2
-*	Input:	
-*	Output:	void
-*	Logic:	
-*	Example call:	servo_2();
+* Function Name:	servo_2
+* Input:	
+* Output:			void
+* Logic:	
+* Example call:		servo_2();
 *
 */
 /*siddharth*/void servo_2(unsigned char degrees)			// to be done 
@@ -503,11 +503,11 @@ void right_degrees(unsigned int Degrees)
 
 /*
 *
-*	Name:	servo_3
-*	Input:	
-*	Output:	void
-*	Logic:	
-*	Example call:	servo_3();
+* Funciton Name:	servo_3
+* Input:	
+* Output:			void
+* Logic:	
+* Example call:		servo_3();
 *
 */
 /*siddharth*/void servo_3(unsigned char degrees) 			// to be done
@@ -521,11 +521,11 @@ void right_degrees(unsigned int Degrees)
 
 /*
 *
-*	Name:	servo_1_free
-*	Input:	void
-*	Output:	void
-*	Logic:	
-*	Example call:	servo_1();
+* Function Name:	servo_1_free
+* Input:			void
+* Output:			void
+* Logic:	
+* Example call:		servo_1();
 *
 */
 /*siddharth*/void servo_1_free (void) 					// to be done
@@ -537,11 +537,11 @@ void right_degrees(unsigned int Degrees)
 
 /*
 *
-*	Name:	servo_2_free
-*	Input:	void
-*	Output:	void
-*	Logic:	
-*	Example call:	servo_2_free();
+* Function Name:	servo_2_free
+* Input:			void
+* Output:			void
+* Logic:	
+* Example call:		servo_2_free();
 *
 */
 /*siddharth*/void servo_2_free (void) 
@@ -552,14 +552,14 @@ void right_degrees(unsigned int Degrees)
 
 /*
 *
-*	Name:	servo_3-free
-*	Input:	void
-*	Output:	void
-*	Logic:	
-*	Example call:	servo_3_free();
+* Function Name:	servo_3-free
+* Input:			void
+* Output:			void
+* Logic:	
+* Example Call:		servo_3_free();
 *
 */
-/*siddharth*/void servo_3_free (void					to be done 
+/*siddharth*/void servo_3_free (void) //					to be done 
 {
 	OCR1CH = 0x03;
 	OCR1CL = 0xFF; //Servo 3 off
