@@ -761,13 +761,33 @@ int count1=1;
 
 
 
-
-/*rishabh*/void buzzer_pin_config (void)
+/*
+*
+* Function Name: 	buzzer_pin_config
+* Input: 		void
+* Output: 		void
+* Logic: 		Initializes buzzer_pin by setting output as 0 then turning off buzzer
+* Example Call:		buzzer_pin_config();
+*
+*/
+void buzzer_pin_config (void)
 {
 	DDRC = DDRC | 0x08;			//Setting PORTC 3 as output
 	PORTC = PORTC & 0xF7;		//Setting PORTC 3 logic low to turnoff buzzer
 }
-/*rishabh*/void buzzer_on (void) 
+
+
+
+/*
+*
+* Function Name: 	buzzer_on
+* Input: 		void
+* Output: 		void
+* Logic: 		Starts the buzzer by switching on the PC3 pin
+* Example Call:		buzzer_on();
+*
+*/
+void buzzer_on (void) 
 {
 	unsigned char port_restore = 0;
 	port_restore = PINC;
