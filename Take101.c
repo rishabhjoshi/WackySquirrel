@@ -902,16 +902,24 @@ void GPIO_pin_config(void)
 	//PORTH= PORTH | 0x10;	 //turn on color sensor vcc
 }
 
-
-/*rishabh*/void find_line()
+/*
+*
+* Function Name: 	find_line
+* Input: 			void
+* Output: 			void
+* Logic: 			Sweeps some area to find the expected line
+* Example Call:		find_line();
+*
+*/
+void find_line(void)
 {
-	print_line_sensor();
+	print_line_sensor();	// Returns current line configuration(3 digit number). 1 - black, 0 - white
 	if(line_conf==0)
 	{
-		ShaftCountRight=0;
-		//left();
-		right();
-		velocity(120,120);
+		ShaftCountRight=0;		// Initializes shaft count right
+		//left();				// Sweeps to the left first
+		right();				// Sweeps to the right first
+		velocity(120,120);		// Velocity initialization
 		while(ShaftCountRight<12)
 		{
 			print_line_sensor();
@@ -950,13 +958,22 @@ void GPIO_pin_config(void)
 				if (line_conf!=0)
 				return;
 			}
-			
 			return;
 	}
-	
 	else if(line_conf!=0)
-	return;}
-/*rishabh*/void slow_follow_line(int RqrdLineConf) 
+	return;
+}
+
+/*
+*
+* Function Name: 	slow_follow_line
+* Input: 			RqrdLineConf (int) - Required Configuration to stop following line
+* Output: 			void
+* Logic: 			Moves forward (slow speed) and adusts speed of the wheels so that the bot remains on the line. This is done till the required line configuration is detected
+* Example Call:		slow_follow_line(111);
+*
+*/
+void slow_follow_line(int RqrdLineConf) 
 {
 	int last_line_conf=0;
 	ShaftCountRight=0;
@@ -1002,7 +1019,17 @@ void GPIO_pin_config(void)
 	velocity(100,100);
 	return;
 }
-/*rishabh*/void follow_line(int RqrdLineConf)
+
+/*
+*
+* Function Name: 	follow_line
+* Input: 			RqrdLineConf (int) - Required Configuration to stop following line
+* Output: 			void
+* Logic: 			Moves forward (high speed) and adusts speed of the wheels so that the bot remains on the line. This is done till the required line configuration is detected
+* Example Call:		follow_line(111);
+*
+*/
+void follow_line(int RqrdLineConf)
 {
 	int last_line_conf=0;
 	ShaftCountRight=0;//,ShaftCountLeft=0;   ///////////////////////////////////////////////////////////////////////////////////
@@ -1049,7 +1076,17 @@ void GPIO_pin_config(void)
 	velocity(200,200);
 	return;
 }
-/*rishabh*/void turn_on_line(char direction)
+
+/*
+*
+* Function Name: 	turn_on_line
+* Input: 			direction (char) - Will specify to turn right (r) or left (l) on the line intersection.
+* Output: 			void
+* Logic: 			Turns the bot on a line intersection till the middle line sensor comes exactly on the line
+* Example Call:		turn_on_line(r);  
+*
+*/
+void turn_on_line(char direction)
 {
 	velocity(100,100);
 	if(direction=='r')
