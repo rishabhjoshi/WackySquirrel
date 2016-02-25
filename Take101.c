@@ -566,49 +566,147 @@ void right_degrees(unsigned int Degrees)
 }
 
 
-/*kiran*/void color_sensor_pin_interrupt_init(void)
+/*
+*
+* Function Name: 	color_sensor_pin_interrupt_init
+* Input: 			void
+* Output: 			void
+* Logic: 			 then turning off buzzer ///////////////
+* Example Call:		color_sensor_pin_interrupt_init();
+*
+*/
+void color_sensor_pin_interrupt_init(void)
 {
 	cli(); //Clears the global interrupt
 	EICRA = EICRA | 0x02; // INT0 is set to trigger with falling edge
 	EIMSK = EIMSK | 0x01; // Enable Interrupt INT0 for color sensor
 	sei(); // Enables the global interrupt
 }
-/*kiran*/ISR(INT0_vect) 
+
+
+/*
+*
+* Function Name: 	ISR(INT0_vect)
+* Input: 			INT0_vect
+* Output: 			NIL
+* Logic: 			Increment pulse.
+* Example Call:		/////////////////////
+*
+*/
+ISR(INT0_vect) 
 {
 	pulse++;
 }
-/*kiran*/void left_encoder_pin_config (void)
+
+
+/*
+*
+* Function Name: 	left_encoder_pin_config
+* Input: 			void
+* Output: 			void
+* Logic: 			//////////////////Increment pulse.
+* Example Call:		left_encoder_pin_config();
+*
+*/
+void left_encoder_pin_config (void)
 {
 	DDRE  = DDRE & 0xEF;  //Set the direction of the PORTE 4 pin as input
 	PORTE = PORTE | 0x10; //Enable internal pull-up for PORTE 4 pin
 }
-/*kiran*/void right_encoder_pin_config (void)
+
+
+/*
+*
+* Function Name: 	right_encoder_pin_config
+* Input: 			void
+* Output: 			void
+* Logic: 			//////////////////Increment pulse.
+* Example Call:		right_encoder_pin_config();
+*
+*/
+void right_encoder_pin_config (void)
 {
 	DDRE  = DDRE & 0xDF;  //Set the direction of the PORTE 4 pin as input
 	PORTE = PORTE | 0x20; //Enable internal pull-up for PORTE 4 pin
 }
-/*kiran*/void left_position_encoder_interrupt_init (void)
+
+
+/*
+*
+* Function Name: 	left_position_encoder_interrupt_init
+* Input: 			void
+* Output: 			void
+* Logic: 			//////////////////Increment pulse.
+* Example Call:		left_position_encoder_interrupt_init();
+*
+*/
+void left_position_encoder_interrupt_init (void)
 {
 	cli(); //Clears the global interrupt
 	EICRB = EICRB | 0x02; // INT4 is set to trigger with falling edge
 	EIMSK = EIMSK | 0x10; // Enable Interrupt INT4 for left position encoder
-	sei();   // Enables the global interrupt}
-/*kiran*/void right_position_encoder_interrupt_init (void)
+	sei();   // Enables the global interrupt
+}
+
+
+/*
+*
+* Function Name: 	right_position_encoder_interrupt_init
+* Input: 			void
+* Output: 			void
+* Logic: 			//////////////////Increment pulse.
+* Example Call:		right_position_encoder_interrupt_init();
+*
+*/
+void right_position_encoder_interrupt_init (void)
 {
 	cli(); //Clears the global interrupt
 	EICRB = EICRB | 0x08; // INT5 is set to trigger with falling edge
 	EIMSK = EIMSK | 0x20; // Enable Interrupt INT5 for right position encoder
 	sei();   // Enables the global interrupt
 }
-/*kiran*/ISR(INT5_vect) 
+
+
+/*
+*
+* Function Name: 	ISR(INT5_vect)
+* Input: 			INT5_vect
+* Output: 			NIL
+* Logic: 			Increment Shaft count right.
+* Example Call:		/////////////////////
+*
+*/
+ISR(INT5_vect) 
 {
 	ShaftCountRight++;
 }
-/*kiran*/ISR(INT4_vect)
+
+
+/*
+*
+* Function Name: 	ISR(INT4_vect)
+* Input: 			INT4_vect
+* Output: 			NIL
+* Logic: 			Increment shaft coutn left.
+* Example Call:		/////////////////////
+*
+*/
+ISR(INT4_vect)
 {
 	ShaftCountLeft++;
 } 
-/*kiran*/void timer1_init(void) 
+
+
+/*
+*
+* Function Name: 	timer1_init
+* Input: 			void
+* Output: 			void
+* Logic: 			///////////////////Increment pulse.
+* Example Call:		timer1_init();
+*
+*/
+void timer1_init(void) 
 {
  TCCR1B = 0x00; //stop
  TCNT1H = 0xFC; //Counter high value to which OCR1xH value is to be compared with
@@ -627,7 +725,18 @@ void right_degrees(unsigned int Degrees)
  TCCR1C = 0x00;
  TCCR1B = 0x0C; //WGM12=1; CS12=1, CS11=0, CS10=0 (Prescaler=256)
 }
-/*kiran*/void timer5_init()
+
+
+/*
+*
+* Function Name: 	timer5_init
+* Input: 			void
+* Output: 			void
+* Logic: 			///////////////////Increment pulse.
+* Example Call:		timer5_init();
+*
+*/
+void timer5_init()
 {
 	TCCR5B = 0x00;	//Stop
 	TCNT5H = 0xFF;	//Counter higher 8-bit value to which OCR5xH value is compared with
@@ -645,6 +754,7 @@ void right_degrees(unsigned int Degrees)
 	TCCR5B = 0x0B;	//WGM12=1; CS12=0, CS11=1, CS10=1 (Prescaler=64)
 }
 
+
 /*
 *
 * Function Name: 	velocity
@@ -661,6 +771,7 @@ void velocity (unsigned char left_motor, unsigned char right_motor)
 	//lcd_print(2,1,left_motor,3);
 	//lcd_print(2, 5, right_motor, 3);
 }	
+
 
 /*
 *
@@ -685,6 +796,7 @@ int print_line_sensor()
 	 //lcd_print(1,1,line_conf,3);
 	 return line_conf;
 }
+
 
 /*
 *
@@ -804,6 +916,7 @@ void take_order1(void)
 	return;
 }
 
+
 /*
 *
 * Function Name: 	enter_room
@@ -865,6 +978,7 @@ void enter_room(int room)
 	stop();
 	forward_mm(50);
 }
+
 
 /*
 *
@@ -1036,6 +1150,7 @@ void dump_garbage(int room)
 	return;
 }
 
+
 /*
 *
 * Function Name: 	buzzer_pin_config
@@ -1050,6 +1165,7 @@ void buzzer_pin_config (void)
 	DDRC = DDRC | 0x08;		//Setting PORTC 3 as output
 	PORTC = PORTC & 0xF7;		//Setting PORTC 3 logic low to turnoff buzzer
 }
+
 
 /*
 *
@@ -1068,6 +1184,7 @@ void buzzer_on (void)
 	PORTC = port_restore;					// Switches on the PC3 pin
 }
 
+
 /*
 *
 * Function Name: 	buzzer_off
@@ -1084,6 +1201,7 @@ void buzzer_off (void)
 	port_restore = port_restore & 0xF7;  // To switch off the PC3 pin
 	PORTC = port_restore;				 // Switches off the PC3 pin
 }
+
 
 /*
 *
@@ -1105,6 +1223,7 @@ void GPIO_pin_config(void)
 	//PORTH= PORTH | 0x20;	 //turn on servo3 vcc
 	//PORTH= PORTH | 0x10;	 //turn on color sensor vcc
 }
+
 
 /*
 *
@@ -1168,6 +1287,7 @@ void find_line(void)
 	return;
 }
 
+
 /*
 *
 * Function Name: 	slow_follow_line
@@ -1223,6 +1343,7 @@ void slow_follow_line(int RqrdLineConf)
 	velocity(100,100);
 	return;
 }
+
 
 /*
 *
@@ -1281,6 +1402,7 @@ void follow_line(int RqrdLineConf)
 	return;
 }
 
+
 /*
 *
 * Function Name: 	turn_on_line
@@ -1306,6 +1428,7 @@ void turn_on_line(char direction)
 	return;
 }
 
+
 /*
 *
 * Function Name: 	adc_pin_config
@@ -1322,6 +1445,7 @@ void adc_pin_config (void)
 	DDRK = 0x00; //set PORTK direction as input
 	PORTK = 0x00; //set PORTK pins floating
 }
+
 
 /*
 *
@@ -1340,6 +1464,7 @@ void adc_init()
 	ACSR = 0x80;
 	ADCSRA = 0x86;		//ADEN=1 --- ADIE=1 --- ADPS2:0 = 1 1 0
 }
+
 
 /*
 *
@@ -1367,6 +1492,7 @@ unsigned char ADC_Conversion(unsigned char Ch)
 	return a;
 }
 
+
 /*
 *
 * Function Name: 	color_sensor_pin_config
@@ -1381,6 +1507,7 @@ void color_sensor_pin_config(void)
 	DDRD  = DDRD | 0xFE; //set PD0 as input for color sensor output
 	PORTD = PORTD | 0x01;//Enable internal pull-up for PORTD 0 pin
 }
+
 
 /*
 *
@@ -1400,6 +1527,7 @@ void color_sensor_scaling()
 	PORTD = PORTD | 0x20; //set S1 high
 }
 
+
 /*
 *
 * Function Name: 	motion_pin_config
@@ -1416,6 +1544,7 @@ void motion_pin_config (void)
 	DDRL = DDRL | 0x18;   	// L -> servo motor pins
 	PORTL = PORTL | 0x18; 
 }
+
 
 /*
 *
@@ -1448,6 +1577,7 @@ void return_home()
 	buzzer_off();
 }
 
+
 /*
 *
 * Function Name: 	clip_close
@@ -1470,6 +1600,7 @@ void clip_close(void)
 	servo_2_free();
 }
 
+
 /*
 *
 * Function Name: 	clip_open
@@ -1491,6 +1622,7 @@ void clip_open(void)
 		servo_1_free();
 		servo_2_free();
 }
+
 
 /*
 *
@@ -1571,6 +1703,7 @@ char color_detect(void)
 	return color;
 }
 
+
 /*
 *
 * Function Name: 	judge_order
@@ -1625,6 +1758,7 @@ char judge_order(char room1,char room2)
 	 return order1;
 }
 
+
 /*
 *
 * Function Name: 	sort_orders
@@ -1652,6 +1786,7 @@ void sort_orders(void)
 		max=0;
 	}	
 }
+
 
 /*
 *
@@ -1744,6 +1879,7 @@ void pickup_service_dumping_section(char current_service)
 	return;
 }
 
+
 /*
 *
 * Function Name: 	pickup_service_Shome
@@ -1816,6 +1952,7 @@ void pickup_service_Shome(char current_service)
 	}
 }
 
+
 /*
 *
 * Function Name: 	delivery
@@ -1846,6 +1983,7 @@ void delivery(void)
 			}
 		}		//it will detect the garbage, put the service at empty space and pick up the garbage and dump it and wait at dumping section otherwise home
 }
+
 
 /*
 *
@@ -1878,6 +2016,7 @@ void init_devices(void)
 	color_sensor_scaling();
 	sei();									// Enables the global interrupt
 }
+
 
 /*
 *
