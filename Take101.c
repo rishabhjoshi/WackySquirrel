@@ -505,6 +505,7 @@ void right_degrees(unsigned int Degrees)
 	OCR1CL = 0xFF; //Servo 3 off
 }
 
+
 /*kiran*/void color_sensor_pin_interrupt_init(void)
 {
 	cli(); //Clears the global interrupt
@@ -512,7 +513,6 @@ void right_degrees(unsigned int Degrees)
 	EIMSK = EIMSK | 0x01; // Enable Interrupt INT0 for color sensor
 	sei(); // Enables the global interrupt
 }
-
 /*kiran*/ISR(INT0_vect) 
 {
 	pulse++;
@@ -584,14 +584,34 @@ void right_degrees(unsigned int Degrees)
 	
 	TCCR5B = 0x0B;	//WGM12=1; CS12=0, CS11=1, CS10=1 (Prescaler=64)
 }
-/*kiran*/void velocity (unsigned char left_motor, unsigned char right_motor) 
+
+/*
+*
+* Function Name: 	velocity
+* Input: 			left_motor, right_motor (unsigned char) - //////////////////// 
+* Output: 			void
+* Logic: 			Initializes buzzer_pin by setting output as 0 then turning off buzzer ///////////////
+* Example Call:		buzzer_pin_config(); //////////////////
+*
+*/
+void velocity (unsigned char left_motor, unsigned char right_motor) 
 {
 	OCR5AL = (unsigned char)left_motor;
 	OCR5BL = (unsigned char)right_motor;
 	//lcd_print(2,1,left_motor,3);
 	//lcd_print(2, 5, right_motor, 3);
 }	
-/*kiran*/int print_line_sensor()
+
+/*
+*
+* Function Name: 	print_line_sensor
+* Input: 			void
+* Output: 			int - line configuration (3 digit number)
+* Logic: 			Initializes buzzer_pin by setting output as 0 then turning off buzzer////////////////
+* Example Call:		buzzer_pin_config();////////////////////////////
+*
+*/
+int print_line_sensor()
 {
 	 int left_line=0,center_line=0,right_line=0;
 	 
@@ -603,8 +623,19 @@ void right_degrees(unsigned int Degrees)
 	 	right_line=1;
 	 line_conf = 100*left_line + 10*center_line +right_line;
 	 //lcd_print(1,1,line_conf,3);
-	 return line_conf;}
-/*kiran*/void take_order1()
+	 return line_conf;
+}
+
+/*
+*
+* Function Name: 	take_order1
+* Input: 			void
+* Output: 			void
+* Logic: 			Initializes buzzer_pin by setting output as 0 then turning off buzzer//////////////
+* Example Call:		take_order1();
+*
+*/
+void take_order1(void)
 {
 	char IA1,IA2;
 	current_room++;
@@ -712,7 +743,17 @@ void right_degrees(unsigned int Degrees)
 	take_order1();
 	return;
 }
-/*kiran*/void enter_room(int room)
+
+/*
+*
+* Function Name: 	enter_room
+* Input: 			room (int) - Room number 
+* Output: 			void
+* Logic: 			Initializes buzzer_pin by setting output as 0 then turning off buzzer  //////////////////
+* Example Call:		enter_room(1);  //////////////////
+*
+*/
+void enter_room(int room)
 {
 	if(room!=4)
 	{
@@ -764,7 +805,17 @@ void right_degrees(unsigned int Degrees)
 	stop();
 	forward_mm(50);
 }
-/*kiran*/void dump_garbage(int room)
+
+/*
+*
+* Function Name: 	dump_garbage
+* Input: 			room (int) - Room number
+* Output: 			void
+* Logic: 			Initializes buzzer_pin by setting output as 0 then turning off buzzer  /////////////////
+* Example Call:		dump_garbage(1);  ////////////////////////
+*
+*/
+void dump_garbage(int room)
 {
 	char turn='r';
 	int garbage=1;		
@@ -925,31 +976,27 @@ void right_degrees(unsigned int Degrees)
 	return;
 }
 
-
-
 /*
 *
 * Function Name: 	buzzer_pin_config
-* Input: 		void
-* Output: 		void
-* Logic: 		Initializes buzzer_pin by setting output as 0 then turning off buzzer
+* Input: 			void
+* Output: 			void
+* Logic: 			Initializes buzzer_pin by setting output as 0 then turning off buzzer
 * Example Call:		buzzer_pin_config();
 *
 */
 void buzzer_pin_config (void)
 {
-	DDRC = DDRC | 0x08;			//Setting PORTC 3 as output
+	DDRC = DDRC | 0x08;		//Setting PORTC 3 as output
 	PORTC = PORTC & 0xF7;		//Setting PORTC 3 logic low to turnoff buzzer
 }
-
-
 
 /*
 *
 * Function Name: 	buzzer_on
-* Input: 		void
-* Output: 		void
-* Logic: 		Starts the buzzer by switching on the PC3 pin
+* Input: 			void
+* Output: 			void
+* Logic: 			Starts the buzzer by switching on the PC3 pin
 * Example Call:		buzzer_on();
 *
 */
@@ -957,17 +1004,37 @@ void buzzer_on (void)
 {
 	unsigned char port_restore = 0;
 	port_restore = PINC;
-	port_restore = port_restore | 0x08;
-	PORTC = port_restore;
+	port_restore = port_restore | 0x08;  	// To switch on the PC3 pin	
+	PORTC = port_restore;					// Switches on the PC3 pin
 }
-/*rishabh*/void buzzer_off (void)
+
+/*
+*
+* Function Name: 	buzzer_off
+* Input: 			void
+* Output: 			void
+* Logic: 			Stops the buzzer by switching off the PC3 pin
+* Example Call:		buzzer_off();
+*
+*/
+void buzzer_off (void)
 {
 	unsigned char port_restore = 0;
 	port_restore = PINC;
-	port_restore = port_restore & 0xF7;
-	PORTC = port_restore;
+	port_restore = port_restore & 0xF7;  // To switch off the PC3 pin
+	PORTC = port_restore;				 // Switches off the PC3 pin
 }
-/*rishabh*/void GPIO_pin_config(void)
+
+/*
+*
+* Function Name: 	GPIO_pin_config
+* Input: 			void
+* Output: 			void
+* Logic: 			Sets output to 4 GPIO pins and they are set true
+* Example Call:		GPIO_pin_config();
+*
+*/
+void GPIO_pin_config(void)
 {
 	DDRL = DDRL | 0xC3;   
 	//DDRD = DDRD & 0x0F;  
@@ -978,15 +1045,25 @@ void buzzer_on (void)
 	//PORTH= PORTH | 0x20;	 //turn on servo3 vcc
 	//PORTH= PORTH | 0x10;	 //turn on color sensor vcc
 }
-/*rishabh*/void find_line()
+
+/*
+*
+* Function Name: 	find_line
+* Input: 			void
+* Output: 			void
+* Logic: 			Sweeps some area to find the expected line
+* Example Call:		find_line();
+*
+*/
+void find_line(void)
 {
-	print_line_sensor();
+	print_line_sensor();	// Returns current line configuration(3 digit number). 1 - black, 0 - white
 	if(line_conf==0)
 	{
-		ShaftCountRight=0;
-		//left();
-		right();
-		velocity(120,120);
+		ShaftCountRight=0;		// Initializes shaft count right
+		//left();				// Sweeps to the left first
+		right();				// Sweeps to the right first
+		velocity(120,120);		// Velocity initialization
 		while(ShaftCountRight<12)
 		{
 			print_line_sensor();
@@ -1025,13 +1102,22 @@ void buzzer_on (void)
 				if (line_conf!=0)
 				return;
 			}
-			
 			return;
 	}
-	
 	else if(line_conf!=0)
-	return;}
-/*rishabh*/void slow_follow_line(int RqrdLineConf) 
+	return;
+}
+
+/*
+*
+* Function Name: 	slow_follow_line
+* Input: 			RqrdLineConf (int) - Required Configuration to stop following line
+* Output: 			void
+* Logic: 			Moves forward (slow speed) and adusts speed of the wheels so that the bot remains on the line. This is done till the required line configuration is detected
+* Example Call:		slow_follow_line(111);
+*
+*/
+void slow_follow_line(int RqrdLineConf) 
 {
 	int last_line_conf=0;
 	ShaftCountRight=0;
@@ -1077,7 +1163,17 @@ void buzzer_on (void)
 	velocity(100,100);
 	return;
 }
-/*rishabh*/void follow_line(int RqrdLineConf)
+
+/*
+*
+* Function Name: 	follow_line
+* Input: 			RqrdLineConf (int) - Required Configuration to stop following line
+* Output: 			void
+* Logic: 			Moves forward (high speed) and adusts speed of the wheels so that the bot remains on the line. This is done till the required line configuration is detected
+* Example Call:		follow_line(111);
+*
+*/
+void follow_line(int RqrdLineConf)
 {
 	int last_line_conf=0;
 	ShaftCountRight=0;//,ShaftCountLeft=0;   ///////////////////////////////////////////////////////////////////////////////////
@@ -1124,7 +1220,17 @@ void buzzer_on (void)
 	velocity(200,200);
 	return;
 }
-/*rishabh*/void turn_on_line(char direction)
+
+/*
+*
+* Function Name: 	turn_on_line
+* Input: 			direction (char) - Will specify to turn right (r) or left (l) on the line intersection.
+* Output: 			void
+* Logic: 			Turns the bot on a line intersection till the middle line sensor comes exactly on the line
+* Example Call:		turn_on_line(r);  
+*
+*/
+void turn_on_line(char direction)
 {
 	velocity(100,100);
 	if(direction=='r')
@@ -1139,14 +1245,34 @@ void buzzer_on (void)
 	stop();
 	return;
 }
-/*rishabh*/void adc_pin_config (void) 
+
+/*
+*
+* Function Name: 	adc_pin_config
+* Input: 			void
+* Output: 			void
+* Logic: 			Initializes ADC channel pins by setting 0 to all the channel pins
+* Example Call:		adc_pin_config();
+*
+*/
+void adc_pin_config (void) 
 {
 	DDRF = 0x00; //set PORTF direction as input
 	PORTF = 0x00; //set PORTF pins floating
 	DDRK = 0x00; //set PORTK direction as input
 	PORTK = 0x00; //set PORTK pins floating
 }
-/*rishabh*/void adc_init() 
+
+/*
+*
+* Function Name: 	adc_init
+* Input: 			void
+* Output: 			void
+* Logic: 			Initilizes ADCs pins
+* Example Call:		adc_init();
+*
+*/
+void adc_init() 
 {
 	ADCSRA = 0x00;
 	ADCSRB = 0x00;		//MUX5 = 0
@@ -1154,7 +1280,17 @@ void buzzer_on (void)
 	ACSR = 0x80;
 	ADCSRA = 0x86;		//ADEN=1 --- ADIE=1 --- ADPS2:0 = 1 1 0
 }
-/*rishabh*/unsigned char ADC_Conversion(unsigned char Ch)
+
+/*
+*
+* Function Name: 	ADC_Conversion
+* Input: 			Ch (unsigned char) - Channel Number
+* Output: 			unsigned char - integer value between 0 and 255, as a hex value.
+* Logic: 			The channel number is converted to its corresponding Analog Value
+* Example Call:		if(ADC_Conversion(2) > 32);
+*
+*/
+unsigned char ADC_Conversion(unsigned char Ch)
 {
 	unsigned char a;
 	if(Ch>7)
@@ -1170,12 +1306,32 @@ void buzzer_on (void)
 	ADCSRB = 0x00;
 	return a;
 }
-/*rishabh*/void color_sensor_pin_config(void) 
+
+/*
+*
+* Function Name: 	color_sensor_pin_config
+* Input: 			void
+* Output: 			void
+* Logic: 			Initializes color sensor pins
+* Example Call:		color_sensor_pin_config();
+*
+*/
+void color_sensor_pin_config(void) 
 {
 	DDRD  = DDRD | 0xFE; //set PD0 as input for color sensor output
 	PORTD = PORTD | 0x01;//Enable internal pull-up for PORTD 0 pin
 }
-/*rishabh*/void color_sensor_scaling() 
+
+/*
+*
+* Function Name: 	color_sensor_scaling
+* Input: 			void
+* Output: 			void
+* Logic: 			Sets particular power to the color sensor
+* Example Call:		color_sensor_scaling();
+*
+*/
+void color_sensor_scaling() 
 {
 	//Output Scaling 20% from datasheet
 	//PORTD = PORTD & 0xEF;
@@ -1183,14 +1339,34 @@ void buzzer_on (void)
 	//PORTD = PORTD & 0xDF; //set S1 low
 	PORTD = PORTD | 0x20; //set S1 high
 }
-/*rishabh*/void motion_pin_config (void)
+
+/*
+*
+* Function Name: 	motion_pin_config
+* Input: 			void
+* Output: 			void
+* Logic: 			Configures motion pins for the DC motors and the servo motors.
+* Example Call:		motion_pin_config();
+*
+*/
+void motion_pin_config (void)
 {
-	DDRA = DDRA | 0x0F;
+	DDRA = DDRA | 0x0F;  	// A -> DC motors pins
 	PORTA = PORTA & 0xF0;
-	DDRL = DDRL | 0x18;   
+	DDRL = DDRL | 0x18;   	// L -> servo motor pins
 	PORTL = PORTL | 0x18; 
 }
-/*rishabh*/void return_home()
+
+/*
+*
+* Function Name: 	return_home
+* Input: 			void
+* Output: 			void
+* Logic: 			Returns the bot to home after servicing all rooms
+* Example Call:		return_home();
+*
+*/
+void return_home()
 {
 	if(position=='D')
 	{
@@ -1209,12 +1385,19 @@ void buzzer_on (void)
 	stop();
 	buzzer_on();
 	_delay_ms(5000);
-	buzzer_off();}
+	buzzer_off();
+}
 
-
-
-
-/*ayush*/void clip_close(void) 
+/*
+*
+* Function Name: 	clip_close
+* Input: 			void
+* Output: 			void
+* Logic: 			Returns the bot to home after servicing all rooms///////////////////////////
+* Example Call:		clip_close();
+*
+*/
+void clip_close(void) 
 {	
 	for (int i=0;i<181;i++)
 		{
@@ -1226,7 +1409,17 @@ void buzzer_on (void)
 	servo_1_free();
 	servo_2_free();
 }
-/*ayush*/void clip_open(void)
+
+/*
+*
+* Function Name: 	clip_open
+* Input: 			void
+* Output: 			void
+* Logic: 			Returns the bot to home after servicing all rooms/////////////////////////////
+* Example Call:		clip_open();
+*
+*/
+void clip_open(void)
 {
 		for (int i=0;i<181;i++)
 		{
@@ -1238,7 +1431,17 @@ void buzzer_on (void)
 		servo_1_free();
 		servo_2_free();
 }
-/*ayush*/char color_detect() 
+
+/*
+*
+* Function Name: 	color_detect
+* Input: 			void
+* Output: 			void
+* Logic: 			Returns the bot to home after servicing all rooms/////////////////
+* Example Call:		color_detect();
+*
+*/
+char color_detect(void) 
 {
 	//lcd_wr_command(0x01);
 	//red
@@ -1307,7 +1510,17 @@ void buzzer_on (void)
 	//lcd_wr_command(0x01); //Clear the LCD
 	return color;
 }
-/*ayush*/char judge_order(char room1,char room2)
+
+/*
+*
+* Function Name: 	judge_order
+* Input: 			2 characters corresponding to the colours of the service request panels - room1 and room2
+* Output: 			char - ////////////////
+* Logic: 			Returns the bot to home after servicing all rooms/////////////
+* Example Call:		return_home();///////////////////
+*
+*/
+char judge_order(char room1,char room2)
 {
 	 char order1;
 	 if (room1 != 'K') // K is black
@@ -1351,7 +1564,17 @@ void buzzer_on (void)
 	 lcd_cursor_char_print(2,1,order1);
 	 return order1;
 }
-/*ayush*/void sort_orders()
+
+/*
+*
+* Function Name: 	sort_orders
+* Input: 			void
+* Output: 			void
+* Logic: 			Returns the bot to home after servicing all rooms///////////////////////////
+* Example Call:		sort_orders();
+*
+*/
+void sort_orders(void)
 {
 	int max=0; 
 	int max_room=0;
@@ -1369,7 +1592,17 @@ void buzzer_on (void)
 		max=0;
 	}	
 }
-/*ayush*/void pickup_service_dumping_section(char current_service)
+
+/*
+*
+* Function Name: 	pickup_service_dumping_section
+* Input: 			current_service (char) - ///////////////////////////
+* Output: 			void
+* Logic: 			Returns the bot to home after servicing all rooms ///////////////////////
+* Example Call:		pickup_service_dumping_section('R');
+*
+*/
+void pickup_service_dumping_section(char current_service)
 {
 	int cross,tempv=0,ret=1;
 	
@@ -1450,7 +1683,17 @@ void buzzer_on (void)
 		turn_on_line('r');
 	return;
 }
-/*ayush*/void pickup_service_Shome(char current_service)
+
+/*
+*
+* Function Name: 	pickup_service_Shome
+* Input: 			current_service (char) - ///////////////////////////
+* Output: 			void
+* Logic: 			Returns the bot to home after servicing all rooms
+* Example Call:		pickup_service_Shome('G');
+*
+*/
+void pickup_service_Shome(char current_service)
 {
 	//the center point of the two wheels is exactly on service home
 	char turn;
@@ -1512,7 +1755,17 @@ void buzzer_on (void)
 		turn_on_line('r');
 	}
 }
-/*ayush*/void delivery()
+
+/*
+*
+* Function Name: 	delivery
+* Input: 			void
+* Output: 			void
+* Logic: 			Returns the bot to home after servicing all rooms
+* Example Call:		delivery();
+*
+*/
+void delivery(void)
 {	
 	//position can be only dumping section or service home
 	//for service home position=s
@@ -1533,7 +1786,17 @@ void buzzer_on (void)
 			}
 		}		//it will detect the garbage, put the service at empty space and pick up the garbage and dump it and wait at dumping section otherwise home
 }
-/*ayush*/void init_devices()
+
+/*
+*
+* Function Name: 	init_devices
+* Input: 			void
+* Output: 			void
+* Logic: 			Returns the bot to home after servicing all rooms
+* Example Call:		init_devices();
+*
+*/
+void init_devices(void)
 {
 	cli();									//Clears the global interrupt
 	motion_pin_config();							//robot motion pins config
@@ -1553,8 +1816,19 @@ void buzzer_on (void)
 	//lcd_set_4bit();
 	//lcd_init();
 	color_sensor_scaling();
-	sei();									// Enables the global interrupt}
-/*ayush*/int main()
+	sei();									// Enables the global interrupt
+}
+
+/*
+*
+* Function Name: 	main
+* Input: 			void
+* Output: 			0 (int) - Main returns 0 signifying successful run of program
+* Logic: 			Returns the bot to home after servicing all rooms
+* Example Call:		Not Called
+*
+*/
+int main()
 {
 	init_devices();
 	PORTH= PORTH | 0x10;	 		//turn on color sensor vcc and servo3
