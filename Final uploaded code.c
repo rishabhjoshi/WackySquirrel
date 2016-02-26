@@ -624,10 +624,7 @@ void velocity (unsigned char left_motor, unsigned char right_motor)
 {
 	OCR5AL = (unsigned char)left_motor;
 	OCR5BL = (unsigned char)right_motor;
-	//lcd_print(2,1,left_motor,3);
-	//lcd_print(2, 5, right_motor, 3);
 }	
-
 
 /*
 *
@@ -635,7 +632,7 @@ void velocity (unsigned char left_motor, unsigned char right_motor)
 * Input: 			void
 * Output: 			int - line configuration (3 digit number)
 * Logic: 			Initializes buzzer_pin by setting output as 0 then turning off buzzer////////////////
-* Example Call:		buzzer_pin_config();////////////////////////////
+* Example Call:		buzzer_pin_config();
 *
 */
 int print_line_sensor()
@@ -649,7 +646,6 @@ int print_line_sensor()
 	 if (ADC_Conversion(1)>32)	  //to print right line sensor detection
 	 	right_line=1;
 	 line_conf = 100*left_line + 10*center_line +right_line;
-	 //lcd_print(1,1,line_conf,3);
 	 return line_conf;
 }
 
@@ -667,7 +663,7 @@ void take_order1()
 {
 	char IA1,IA2; 								/*	IA1 for storing first indicator
 													IA2 for storing second indicator	*/
-	current_room++;								// why?
+	current_room++;	
 	shaft=15;									// tells approx shaft count for follow line
 	slow_follow_line(0);						// follow initial line
 	forward();									
@@ -677,26 +673,13 @@ void take_order1()
 	{
 		if(ADC_Conversion(9)>40)					//detect left wall 
 		{
-			//print_sensor(1,5,9);					//no use?
 			forward_mm(50);							//move forward to detect first indicator
 			stop();
 			break;
 		}
 	}
-	IA1=color_detect();
-	/*_delay_ms(600);
-	if (current_room==3){
-		//_delay_ms(1000);
-		blink_green();
-	}
-	else if(current_room==4){
-		//_delay_ms(1000);
-		blink_red();}
-	else if(current_room==5){
-		//_delay_ms(1000);
-		blink_green();}		
-										//detects first indicator
-	*/
+	color_detect();
+	IA1=color;
 	forward();										
 	timer5_init();	
 		forward_mm(250);							
@@ -709,25 +692,13 @@ void take_order1()
 				break;
 			}
 		}
-		//forward_mm(40);								//move forward to detect color
-	
-	IA2=color_detect();
-	/*_delay_ms(600);
-	if(current_room==2){
-		//_delay_ms(1000);
-		blink_red();
-		}
-	if(current_room==3){
-		//_delay_ms(1000);
-		blink_green();
-		}				//detect second color
-	///*****************
-		*/											
-	if (judge_order(IA1,IA2)=='E')					// if error in color detection
-																								
-
+	color_detect();
+	IA2=color;
+										
+	if (judge_order(IA1,IA2)=='E')						// if error in color detection
 	{
-		IA2=color_detect();							
+		color_detect();
+		IA2 = color;
 		velocity(252,255);
 		back_mm(150);								
 		_delay_ms(1000);
@@ -741,12 +712,13 @@ void take_order1()
 			}
 		}
 		back_mm(50);								// aligns with first indicator
-		IA1=color_detect();							
+		color_detect();
+		IA1=color;							
 		judge_order(IA1,IA2);						
 		if (current_room==5)						// if last room. Move forward to get in same position.
 			forward_mm(620);
 	}
-	//***************/
+	
 	timer5_init();
 	if (current_room!=5)
 	{
@@ -774,14 +746,13 @@ void take_order1()
 	else											// if last room
 	{	
 		PORTH= PORTH & 0xCF;						//turn off color sensor vcc and servo3
-		//PORTH= PORTH | 0x20;						//turn on servo vcc
 		timer1_init();
 		servo3_pin_config();
-		servo_3(150);								////////////////was 100
+		servo_3(150);								//rotation angle for color sensor servo motor to close
 		_delay_ms(1000);
 		servo_3_free();
 		
-		// reach service home
+													// reach service home
 		
 		forward_mm(40);								
 		find_line();
@@ -793,15 +764,17 @@ void take_order1()
 	take_order1();
 	return;
 }
+
 /*
 * Function Name: 	Enter_room
 *Input:			Room Number as int
 *Output:		void
-* Logic:			Start position: Service center home.
-			End Position:	Room center.
+* Logic:		Start position: Service center home.
+				End Position:	Room center.
 * Example Call:		enter_room(3);
 */
-void enter_room(int room)	{
+void enter_room(int room)	
+{
 	if(room!=4)	{		// if room != 4 then go to home 
 		print_line_sensor();
 		shaft=56;		// Gives approx shaft count for which folllow line 						// excutes
@@ -1016,8 +989,6 @@ void dump_garbage(int room)
 		return;
 	}
 	
-	//slow_follow_line(111);
-	//back_mm(50);
 	return;
 }
 
@@ -1175,10 +1146,9 @@ void find_line(){
 void slow_follow_line(int RqrdLineConf)
 {
 	int last_line_conf=0;
-	ShaftCountRight=0;//,ShaftCountLeft=0;   ///////////////////////////////////////////////////////////////////////////////////
+	ShaftCountRight=0;
 	print_line_sensor();
 	forward();
-	//back();
 	while(1)
 	{
 		if(line_conf==100)
@@ -1211,7 +1181,7 @@ void slow_follow_line(int RqrdLineConf)
 		{
 			if (RqrdLineConf==111)
 			break;
-			else if(ShaftCountRight>=shaft)// | ShaftCountLeft>=shaft)   ////////////////////////////////////////////////////////
+			else if(ShaftCountRight>=shaft)
 			break;
 		}
 	}
@@ -1219,6 +1189,7 @@ void slow_follow_line(int RqrdLineConf)
 	velocity(100,100);
 	return;
 }
+
 /*
 *
 * Function Name: 	follow_line
@@ -1231,10 +1202,9 @@ void slow_follow_line(int RqrdLineConf)
 void follow_line(int RqrdLineConf)
 {
 	int last_line_conf=0;
-	ShaftCountRight=0;//,ShaftCountLeft=0;   ///////////////////////////////////////////////////////////////////////////////////
+	ShaftCountRight=0;
 	print_line_sensor();
 	forward();
-	//back();
 	while(1)
 	{
 		if(line_conf==100)
@@ -1267,7 +1237,7 @@ void follow_line(int RqrdLineConf)
 		{
 			if (RqrdLineConf==111)
 			break;
-			else if(ShaftCountRight>=shaft)// | ShaftCountLeft>=shaft)   ////////////////////////////////////////////////////////
+			else if(ShaftCountRight>=shaft)
 			break;
 		}
 	}
@@ -1287,12 +1257,10 @@ void follow_line(int RqrdLineConf)
 */
 void color_sensor_scaling()
 {
-	//Output Scaling 20% from datasheet
-	//PORTD = PORTD & 0xEF;
 	PORTD = PORTD | 0x10; //set S0 high
-	//PORTD = PORTD & 0xDF; //set S1 low
 	PORTD = PORTD | 0x20; //set S1 high
 }
+
 /*
 *
 * Function Name: 	motion_pin_config
@@ -1313,13 +1281,13 @@ void motion_pin_config (void)
 *
 * Function Name: 	color_detect
 * Input: 			void
-* Output: 			void
+* Output: 			char
 * Logic: 			Returns the bot to home after servicing all rooms/////////////////
 * Example Call:		color_detect();
 *
 */
-void color_detect() {
-	//AlignColorSensor();
+void color_detect() 
+{
 	red_read();									//read red
 	_delay_ms(100);
 	green_read();								//read green
@@ -1357,8 +1325,6 @@ void color_detect() {
 	}
 }
 
-
-
 /*
 *
 * Function Name: 	adc_pin_config
@@ -1375,7 +1341,6 @@ void adc_pin_config (void)
 	DDRK = 0x00; //set PORTK direction as input
 	PORTK = 0x00; //set PORTK pins floating
 }
-
 
 /*
 *
@@ -1450,8 +1415,8 @@ void color_sensor_pin_config(void)
 void pickup_service_dumping_section(char current_service)
 {
 	int cross, tempv=0, retc=75, shaftc=0;		
-						// shaftc : stores apporx shaft count to move 							// for different colors
-						//retc:shaft count fot returning to service home
+						// shaftc : stores apporx shaft count to move for different colors
+						//retc:	shaft count fot returning to service home
 	if (current_service=='R') // if service required is red
 		{		
 		shaftc=132;				
@@ -1573,16 +1538,6 @@ void clip_open(void) {
 	servo_2_free();
 }
 
-
-
-
-
-
-
-
-
-
-
 /*
 *
 * Function Name: 	judge_order
@@ -1592,7 +1547,8 @@ void clip_open(void) {
 * Example Call:		judge_order('G','K')
 *
 */
-char judge_order(char room1,char room2){
+char judge_order(char room1,char room2)
+{
 	char order1;
 	if (room1 != 'K')				//first indicator is not black
 	{
@@ -1637,11 +1593,6 @@ char judge_order(char room1,char room2){
 	return order1;
 }
 
-
-
-
-
-
 /*
 *
 * Function Name: 	sort_orders
@@ -1651,7 +1602,8 @@ char judge_order(char room1,char room2){
 * Example Call:		sort_orders();
 *
 */
-void sort_orders(){
+void sort_orders()
+{
 	int max=0; 		//max variable stores the max prefrence values in array
 	int max_room=0;	//this variable stores the room no. of the room with the highest prefrence
 	for(int j=1;j<5;j++)		//sort the rooms according to the prefrence value
@@ -1680,13 +1632,13 @@ void sort_orders(){
 */
 void pickup_service_Shome(char current_service)	{
 	char turn;
-	if(current_service=='G')				// if service is green turn right and 							// follow line to reach the service 
+	if(current_service=='G')				// if service is green turn right AND follow line to reach the service 
 	{
 		turn_on_line('r');
 		follow_line(111);
 		velocity(150,150);
 		forward_mm(60);
-		if((int)ADC_Conversion(13)-(int)ADC_Conversion(9)>30) // check whick side the 										//service is present
+		if((int)ADC_Conversion(13)-(int)ADC_Conversion(9)>30) // check whick side the service is present
 			turn='r';
 		else 
 			turn='l';
@@ -1703,21 +1655,21 @@ void pickup_service_Shome(char current_service)	{
 		if(current_service=='B')			// if service is blue
 		{	
 			velocity(200,200);
-			forward();			// move forward and follow line to 								// center of blue service
+			forward();			// move forward and follow line to center of blue service
 			_delay_ms(300);
 			follow_line(111);
 		}
 		velocity(150,150);
 		forward_mm(60);			// move forward to align bot after turn
-		if((int)ADC_Conversion(13)-(int)ADC_Conversion(9)>30) //check service is left 										   //or right 
+		if((int)ADC_Conversion(13)-(int)ADC_Conversion(9)>30) //check service is left or right 
 			turn='r';
 		else 
 			turn='l';
 		turn_on_line(turn);				// turn towards service
 		clip_close();					// pickup service
 		turn_on_line(turn);				
-		follow_line(111);			// should reach service home if 									//service is red else center of red
-		if(current_service=='B')		// if service is blue move forward to reach s							// service home
+		follow_line(111);			// should reach service home if service is red else center of red
+		if(current_service=='B')		// if service is blue move forward to reach service home
 		{
 			velocity(200,200);
 			forward();
@@ -1729,9 +1681,6 @@ void pickup_service_Shome(char current_service)	{
 		turn_on_line('r');		// turn towards arena
 	}
 }
-
-
-
 
 /*
 *
